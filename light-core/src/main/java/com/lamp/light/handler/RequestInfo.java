@@ -3,6 +3,8 @@ package com.lamp.light.handler;
 import java.util.List;
 import java.util.Map;
 
+import com.lamp.light.serialize.Serialize;
+
 import io.netty.handler.codec.http.HttpMethod;
 
 public class RequestInfo {
@@ -14,6 +16,10 @@ public class RequestInfo {
     private Boolean isBody;
     
     private Long requestTimeout;
+    
+    private Serialize serialize;
+    
+    private Class<?> returnClazz;
     
     private Map<String , String> header;
     
@@ -67,6 +73,14 @@ public class RequestInfo {
 
     public void setBodyIndex(int bodyIndex) {
         this.bodyIndex = bodyIndex;
+    }
+    
+    public Class<?> getReturnClazz() {
+        return returnClazz;
+    }
+
+    public void setReturnClazz(Class<?> returnClazz) {
+        this.returnClazz = returnClazz;
     }
 
     public Map<String, String> getHeader() {

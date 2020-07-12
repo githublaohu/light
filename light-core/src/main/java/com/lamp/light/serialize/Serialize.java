@@ -4,5 +4,5 @@ public interface Serialize {
 
     public byte[] serialize(Object object);
     
-    public <T> T deserialization(T t);
+    public <T> T deserialization(Class<T> t, byte[] data);
 }
