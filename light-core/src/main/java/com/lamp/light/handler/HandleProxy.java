@@ -17,6 +17,7 @@ import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.handler.CoordinateHandler.CoordinateHandlerWrapper;
 import com.lamp.light.netty.NettyClient;
 import com.lamp.light.serialize.Serialize;
+import com.lamp.light.util.BaseUtils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -55,6 +56,7 @@ public class HandleProxy implements InvocationHandler {
     public HandleProxy(String path , Class<?> proxy, InetSocketAddress inetSocketAddress, List<Interceptor> interceptorList,
         Serialize serialize) throws Exception {
         this.requestInfo = annotationAnalysis.analysis(proxy);
+        this.requestInfo.setUrl(BaseUtils.setSlash(path)+BaseUtils.setSlash(requestInfo.getUrl()) );
         this.interceptorList = interceptorList;
         this.serialize = serialize;
         this.inetSocketAddress = inetSocketAddress;

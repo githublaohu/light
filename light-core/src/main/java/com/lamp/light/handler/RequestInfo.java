@@ -1,5 +1,6 @@
 package com.lamp.light.handler;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -10,30 +11,36 @@ import io.netty.handler.codec.http.HttpMethod;
 public class RequestInfo {
 
     private String url;
-    
+
     private HttpMethod httpMethod;
-    
+
     private Boolean isBody;
-    
+
     private Long requestTimeout;
-    
+
     private Serialize serialize;
-    
+
     private Class<?> returnClazz;
-    
-    private Map<String , String> header;
-    
+
+    private Map<String, String> header;
+
     private List<Coordinate> headerList;
-    
+
     private List<Coordinate> queryList;
-    
+
     private List<Coordinate> pathList;
-    
+
     private List<Coordinate> fieldList;
-    
+
     private List<Coordinate> cookieList;
-    
+
     private int bodyIndex;
+
+    private Method method;
+    
+    private Object success;
+
+    private Object fail;
 
     public String getUrl() {
         return url;
@@ -42,7 +49,7 @@ public class RequestInfo {
     public void setUrl(String url) {
         this.url = url;
     }
-    
+
     public Boolean getIsBody() {
         return isBody;
     }
@@ -57,7 +64,7 @@ public class RequestInfo {
 
     public void setHttpMethod(HttpMethod httpMethod) {
         this.httpMethod = httpMethod;
-    }    
+    }
 
     public Long getRequestTimeout() {
         return requestTimeout;
@@ -66,7 +73,7 @@ public class RequestInfo {
     public void setRequestTimeout(Long requestTimeout) {
         this.requestTimeout = requestTimeout;
     }
-    
+
     public int getBodyIndex() {
         return bodyIndex;
     }
@@ -74,7 +81,7 @@ public class RequestInfo {
     public void setBodyIndex(int bodyIndex) {
         this.bodyIndex = bodyIndex;
     }
-    
+
     public Class<?> getReturnClazz() {
         return returnClazz;
     }
@@ -130,10 +137,39 @@ public class RequestInfo {
     public void setCookieList(List<Coordinate> cookieList) {
         this.cookieList = cookieList;
     }
+
+    public Serialize getSerialize() {
+        return serialize;
+    }
+
+    public void setSerialize(Serialize serialize) {
+        this.serialize = serialize;
+    }
+
+    public Method getMethod() {
+        return method;
+    }
+
+    public void setMethod(Method method) {
+        this.method = method;
+    }
+
+    public Object getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(Object success) {
+        this.success = success;
+    }
+
+    public Object getFail() {
+        return fail;
+    }
+
+    public void setFail(Object fail) {
+        this.fail = fail;
+    }
     
     
-    
-    
-    
-    
+
 }

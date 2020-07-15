@@ -15,37 +15,37 @@ public class Light {
     private InetSocketAddress inetSocketAddress;
 
     private List<Interceptor> interceptorList;
-    
+
     private Serialize serialize;
-    
+
     private String path;
-    
+
     public <T> T create(Class<?> clazz) throws Exception {
         validateServiceInterface(clazz);
-        return create(clazz,null);
+        return create(clazz, null);
     }
-    
-    public <T> T create(Class<?> clazz, Object result ) throws Exception {
+
+    public <T> T create(Class<?> clazz, Object result) throws Exception {
         return create(clazz, result, result);
     }
-    
+
     @SuppressWarnings("unchecked")
-    public <T> T create(Class<?> clazz, Object success , Object  fail) throws Exception {
+    public <T> T create(Class<?> clazz, Object success, Object fail) throws Exception {
         validateServiceInterface(clazz);
         return (T)getObject(clazz);
     }
 
     private void validateServiceInterface(Class<?> clazz) {
-        if(Objects.isNull(clazz)) {
-            
+        if (Objects.isNull(clazz)) {
+
         }
-        if(!clazz.isInterface()) {
-            
+        if (!clazz.isInterface()) {
+
         }
     }
-    
+
     private Object getObject(Class<?> clazz) throws Exception {
-        HandleProxy handleProxy = new HandleProxy(path , clazz,inetSocketAddress, interceptorList , serialize);
+        HandleProxy handleProxy = new HandleProxy(path, clazz, inetSocketAddress, interceptorList, serialize);
         return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, handleProxy);
     }
 
@@ -101,13 +101,12 @@ public class Light {
 
         public Light build() {
             Light light = new Light();
-            
-            if(Objects.isNull(host) && "".equals(host)) {
-                
+
+            if (Objects.isNull(host) && "".equals(host)) {
+
             }
-            
-            
-            if(Objects.isNull(serialize)) {
+
+            if (Objects.isNull(serialize)) {
                 this.serialize = new FastJsonSerialize();
             }
             light.inetSocketAddress = new InetSocketAddress(host, port);
