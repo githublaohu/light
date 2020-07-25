@@ -1,9 +1,11 @@
 package com.lamp.light.handler;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
+import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.Serialize;
 
 import io.netty.handler.codec.http.HttpMethod;
@@ -14,13 +16,13 @@ public class RequestInfo {
 
     private HttpMethod httpMethod;
 
-    private Boolean isBody;
+    private boolean isBody;
 
     private Long requestTimeout;
 
     private Serialize serialize;
 
-    private Class<?> returnClazz;
+    private Type returnClazz;
 
     private Map<String, String> header;
 
@@ -38,9 +40,7 @@ public class RequestInfo {
 
     private Method method;
     
-    private Object success;
-
-    private Object fail;
+    private ReturnMode returnMode;
 
     public String getUrl() {
         return url;
@@ -82,11 +82,11 @@ public class RequestInfo {
         this.bodyIndex = bodyIndex;
     }
 
-    public Class<?> getReturnClazz() {
+    public Type getReturnClazz() {
         return returnClazz;
     }
 
-    public void setReturnClazz(Class<?> returnClazz) {
+    public void setReturnClazz(Type returnClazz) {
         this.returnClazz = returnClazz;
     }
 
@@ -154,21 +154,18 @@ public class RequestInfo {
         this.method = method;
     }
 
-    public Object getSuccess() {
-        return success;
+    public ReturnMode getReturnMode() {
+        return returnMode;
     }
 
-    public void setSuccess(Object success) {
-        this.success = success;
+    public void setReturnMode(ReturnMode returnMode) {
+        this.returnMode = returnMode;
     }
 
-    public Object getFail() {
-        return fail;
+    public void setBody(boolean isBody) {
+        this.isBody = isBody;
     }
 
-    public void setFail(Object fail) {
-        this.fail = fail;
-    }
     
     
 

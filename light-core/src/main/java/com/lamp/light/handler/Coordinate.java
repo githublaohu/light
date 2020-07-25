@@ -46,6 +46,6 @@ public class Coordinate {
 
     public enum ParametersType {
 
-        BASIC, PACKING, STRING, MAP, LIST, LIST_MAP, LIST_OBJECT, OBJECT;
+        BASIC, PACKING, STRING, MAP, LIST, LIST_MAP, LIST_OBJECT, OBJECT, UPLOAD,UPLOAD_LIST,UPLOAD_MAP;
     }
 }

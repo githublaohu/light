@@ -1,5 +1,6 @@
 package com.lamp.light;
 
+import com.lamp.light.annotation.Field;
 import com.lamp.light.annotation.Header;
 import com.lamp.light.annotation.Headers;
 import com.lamp.light.annotation.POST;
@@ -21,4 +22,8 @@ public interface TestInterface {
     
     @POST("/testObject")
     public ReturnObject testObject(ReturnObject returnObject);
+    
+    @Headers({"Connet-Type:laohu"})
+    @POST("/testObject")
+    public ReturnObject testData(@Field({"key","id"})@Path({"key","id"}) @Query({"key","id"}) @Header({"key","id"}) ReturnObject returnObject);
 }

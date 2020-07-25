@@ -32,7 +32,7 @@ public class Light {
     @SuppressWarnings("unchecked")
     public <T> T create(Class<?> clazz, Object success, Object fail) throws Exception {
         validateServiceInterface(clazz);
-        return (T)getObject(clazz);
+        return (T)getObject(clazz, success , fail);
     }
 
     private void validateServiceInterface(Class<?> clazz) {
@@ -44,8 +44,9 @@ public class Light {
         }
     }
 
-    private Object getObject(Class<?> clazz) throws Exception {
-        HandleProxy handleProxy = new HandleProxy(path, clazz, inetSocketAddress, interceptorList, serialize);
+    private Object getObject(Class<?> clazz, Object success, Object fail) throws Exception {
+        HandleProxy handleProxy =
+            new HandleProxy(path, clazz, inetSocketAddress, interceptorList, serialize, success, fail);
         return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, handleProxy);
     }
 
@@ -53,10 +54,10 @@ public class Light {
         return new Builder();
     }
 
-    static class Builder {
-        String scheme;
+    public static class Builder {
+        private String scheme = "http1.1";
 
-        String host;
+        private String host;
 
         int port = 80;
 

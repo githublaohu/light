@@ -16,6 +16,7 @@ import com.lamp.light.Interceptor;
 import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.handler.CoordinateHandler.CoordinateHandlerWrapper;
 import com.lamp.light.netty.NettyClient;
+import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
 
@@ -25,8 +26,12 @@ import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
+import io.netty.handler.codec.http.QueryStringEncoder;
+import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
+import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder.ErrorDataEncoderException;
 
 /**
  * 
@@ -43,7 +48,7 @@ public class HandleProxy implements InvocationHandler {
     private Map<Method, HandleMethod> handleMethodMap = new ConcurrentHashMap<>();
 
     // http1.1支持
-    private NettyClient nettyClient;
+    private NettyClient nettyClient = new NettyClient();
 
     private InetSocketAddress inetSocketAddress;
 
@@ -53,13 +58,24 @@ public class HandleProxy implements InvocationHandler {
 
     private Serialize serialize;
 
+    private Object success ;
+    
+    private Object fail;
+    
     public HandleProxy(String path , Class<?> proxy, InetSocketAddress inetSocketAddress, List<Interceptor> interceptorList,
-        Serialize serialize) throws Exception {
+        Serialize serialize, Object success , Object fail) throws Exception {
+        
+        if(Objects.isNull(success)|| Objects.isNull(fail)) {
+            
+        }
+        
         this.requestInfo = annotationAnalysis.analysis(proxy);
         this.requestInfo.setUrl(BaseUtils.setSlash(path)+BaseUtils.setSlash(requestInfo.getUrl()) );
         this.interceptorList = interceptorList;
         this.serialize = serialize;
         this.inetSocketAddress = inetSocketAddress;
+        this.success = success;
+        this.fail = fail;
     }
 
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -70,11 +86,36 @@ public class HandleProxy implements InvocationHandler {
         if (Objects.isNull(handleMethod)) {
             handleMethod = new HandleMethod();
             handleMethod.requestInfo = annotationAnalysis.analysis(method, this.requestInfo);
+            if(Objects.nonNull(success)) {
+                handleMethod.success = success;
+                handleMethod.fail = fail;
+                handleMethod.returnMode = ReturnMode.ASYSN;
+            }else {
+                handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
+            }
+            handleMethodMap.put(method, handleMethod);
         }
         RequestInfo requestInfo = handleMethod.requestInfo;
-        for (Interceptor interceptor : interceptorList) {
-            args = interceptor.handlerBefore(proxy, method, requestInfo, args);
+        if(Objects.nonNull(interceptorList)) {
+            for (Interceptor interceptor : interceptorList) {
+                args = interceptor.handlerBefore(proxy, method, requestInfo, args);
+            }
         }
+        HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod);
+        AsynReturn asynReturn = new AsynReturn();
+        asynReturn.setFullHttpRequest(defaultFullHttpRequest);
+        nettyClient.write(asynReturn, inetSocketAddress);
+        Object object = null;
+        if(handleMethod.returnMode == ReturnMode.SYNS) {
+            object =  asynReturn.getObject();
+        }else if(handleMethod.returnMode == ReturnMode.CALL) {
+            object = new DefaultCall<>(asynReturn ,nettyClient );
+            asynReturn.setCall(object);
+        }
+        return object;
+    }
+
+    public HttpRequest getHttpRequest(Object[] args,HandleMethod handleMethod) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ErrorDataEncoderException {
         CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
         // path
         if (Objects.nonNull(requestInfo.getPathList())) {
@@ -82,8 +123,9 @@ public class HandleProxy implements InvocationHandler {
             coordinateHandler(args, requestInfo.getPathList(), coordinateHandlerWrapper.pathCoordinateHandler);
         }
         // query
+        QueryStringEncoder queryStringEncoder = new QueryStringEncoder( requestInfo.getUrl() );
         if (Objects.nonNull(requestInfo.getQueryList())) {
-            coordinateHandlerWrapper.queryCoordinateHandler.setObject(requestInfo.getUrl());
+            coordinateHandlerWrapper.queryCoordinateHandler.setObject(queryStringEncoder);
             coordinateHandler(args, requestInfo.getQueryList(), coordinateHandlerWrapper.queryCoordinateHandler);
         }
         // header
@@ -98,7 +140,7 @@ public class HandleProxy implements InvocationHandler {
         }
 
         // HttpPostRequestEncoder 用于post请求
-        DefaultFullHttpRequest defaultFullHttpRequest;
+        HttpRequest defaultFullHttpRequest;
         ByteBuf buffer = Unpooled.EMPTY_BUFFER;
         if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod())) {
             if (requestInfo.getIsBody()) {
@@ -107,18 +149,18 @@ public class HandleProxy implements InvocationHandler {
                 buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
             }
         }
+        ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
         defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
-            requestInfo.getUrl(), buffer, httpHeaders, httpHeaders);
+            queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
         if (Objects.nonNull(requestInfo.getFieldList())) {
-            HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, true);
+            HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
             coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
             coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
+            //defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
         }
-        AsynReturn asynReturn = new AsynReturn();
-        nettyClient.write(asynReturn, inetSocketAddress);
-        return null;
+        return defaultFullHttpRequest;
     }
-
+    
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void coordinateHandler(Object[] args, List<Coordinate> coordinateList, CoordinateHandler coordinateHandler)
         throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
@@ -148,9 +190,79 @@ public class HandleProxy implements InvocationHandler {
         coordinateHandler.clean();
     }
 
+    
+    
     static class HandleMethod {
         private RequestInfo requestInfo;
 
         private Method method;
+        
+        private Serialize serialize;
+                
+        private Integer requestTimes = 30000;
+        
+        private Object success ;
+        
+        private Object fail;
+        
+        private ReturnMode returnMode;
+
+        public RequestInfo getRequestInfo() {
+            return requestInfo;
+        }
+
+        public void setRequestInfo(RequestInfo requestInfo) {
+            this.requestInfo = requestInfo;
+        }
+
+        public Method getMethod() {
+            return method;
+        }
+
+        public void setMethod(Method method) {
+            this.method = method;
+        }
+
+        public Serialize getSerialize() {
+            return serialize;
+        }
+
+        public void setSerialize(Serialize serialize) {
+            this.serialize = serialize;
+        }
+
+        public Integer getRequestTimes() {
+            return requestTimes;
+        }
+
+        public void setRequestTimes(Integer requestTimes) {
+            this.requestTimes = requestTimes;
+        }
+
+        public Object getSuccess() {
+            return success;
+        }
+
+        public void setSuccess(Object success) {
+            this.success = success;
+        }
+
+        public Object getFail() {
+            return fail;
+        }
+
+        public void setFail(Object fail) {
+            this.fail = fail;
+        }
+
+        public ReturnMode getReturnMode() {
+            return returnMode;
+        }
+
+        public void setReturnMode(ReturnMode returnMode) {
+            this.returnMode = returnMode;
+        }
+        
+        
     }
 }
