@@ -109,8 +109,8 @@ public class HandleProxy implements InvocationHandler {
         if(handleMethod.returnMode == ReturnMode.SYNS) {
             object =  asynReturn.getObject();
         }else if(handleMethod.returnMode == ReturnMode.CALL) {
-            object = new DefaultCall<>(asynReturn ,nettyClient );
-            asynReturn.setCall(object);
+            asynReturn.setCall(new DefaultCall<>(asynReturn ,nettyClient ,inetSocketAddress));
+            object = asynReturn.getCall();
         }
         return object;
     }
@@ -192,7 +192,7 @@ public class HandleProxy implements InvocationHandler {
 
     
     
-    static class HandleMethod {
+   public static class HandleMethod {
         private RequestInfo requestInfo;
 
         private Method method;

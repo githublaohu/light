@@ -1,5 +1,7 @@
 package com.lamp.light.handler;
 
+import java.net.InetSocketAddress;
+
 import com.lamp.light.Call;
 import com.lamp.light.Callback;
 import com.lamp.light.netty.NettyClient;
@@ -9,7 +11,6 @@ import com.lamp.light.response.ReturnMode;
 
 public class DefaultCall<T>  implements Call<T> {
 
-    
     private AsynReturn asynReturn;
     
     private NettyClient nettyClient;
@@ -18,10 +19,15 @@ public class DefaultCall<T>  implements Call<T> {
     
     private Response<T> response;
     
+    private InetSocketAddress inetSocketAddress;
     
-    public DefaultCall(AsynReturn asynReturn, NettyClient nettyClient) {
+    private Throwable throwable;
+    
+    
+    public DefaultCall(AsynReturn asynReturn, NettyClient nettyClient,InetSocketAddress inetSocketAddress ) {
         this.asynReturn = asynReturn;
         this.nettyClient = nettyClient;
+        this.inetSocketAddress = inetSocketAddress;
     }
 
     @Override
@@ -41,21 +47,19 @@ public class DefaultCall<T>  implements Call<T> {
 
     @Override
     public boolean isExecuted() {
-        // TODO Auto-generated method stub
         return false;
     }
 
     @Override
     public void cancel() {
-        // TODO Auto-generated method stub
         
     }
 
     @Override
     public boolean isCanceled() {
-        // TODO Auto-generated method stub
         return false;
     }
+    
 
     public Callback<T> getCallback() {
         return callback;
@@ -67,6 +71,25 @@ public class DefaultCall<T>  implements Call<T> {
 
     public void setResponse(Response<T> response) {
         this.response = response;
+    }
+    
+    
+    public void setThrowable(Throwable throwable) {
+        this.throwable = throwable;
+    }
+    
+    public Throwable getThrowable() {
+        return throwable;
+    }
+
+    @Override
+    public void throwThrowable() {
+        throw new RuntimeException(throwable);
+    }
+
+    @Override
+    public boolean isSuccess() {
+        return throwable == null;
     }
 
     

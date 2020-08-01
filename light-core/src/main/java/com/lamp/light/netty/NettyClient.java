@@ -5,13 +5,16 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.lamp.light.Callback;
 import com.lamp.light.handler.AsynReturn;
 import com.lamp.light.handler.DefaultCall;
 import com.lamp.light.response.Response;
 import com.lamp.light.response.ReturnMode;
+import com.lamp.ligth.model.ModelManage;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelFuture;
@@ -26,12 +29,16 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
+import io.netty.handler.codec.DecoderResult;
+import io.netty.handler.codec.DecoderResultProvider;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.HttpContent;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpRequestEncoder;
-import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseDecoder;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.LastHttpContent;
 import io.netty.handler.timeout.IdleStateHandler;
 
 public class NettyClient {
@@ -73,7 +80,7 @@ public class NettyClient {
                     channelIdToAsynReturn.put(future.channel().id(), asynReturn);
                     future.channel().writeAndFlush(asynReturn.getFullHttpRequest());
                 } else {
-
+                     // 异常
                 }
             }
         });
@@ -81,40 +88,91 @@ public class NettyClient {
 
     class HttpClientHandler extends ChannelInboundHandlerAdapter {
 
+        private DefaultHttpResponse defaultHttpResponse; 
+        
+        private ByteBuf connect;
+        
+        private AsynReturn asynReturn;
+        
+        private Throwable throwable;
+        
+        @Override
+        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+            asynReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
+        }
+        
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-            AsynReturn asynReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
-            if (msg instanceof DefaultFullHttpResponse) {
-                DefaultFullHttpResponse response = (DefaultFullHttpResponse)msg;
-
-            } else if (msg instanceof DefaultHttpResponse) {
-                DefaultHttpResponse response = (DefaultHttpResponse)msg;
-                response.headers();
-                asynReturn.setObject(response);
+            
+            
+            if(msg instanceof DecoderResultProvider) {
+                DecoderResultProvider decoderResultProvider = (DecoderResultProvider)msg;
+                DecoderResult decoderResult = decoderResultProvider.decoderResult();
+                if( Objects.nonNull(decoderResult) && !decoderResult.isSuccess()) {
+                    //异常
+                    throwable = decoderResult.cause();
+                }
+            }
+            if (msg instanceof DefaultHttpResponse) {
+                defaultHttpResponse = (DefaultHttpResponse)msg;
+                HttpHeaders headers = defaultHttpResponse.headers();
+                Integer contentLength = headers.getInt(HttpHeaderNames.CONTENT_LENGTH);
+                connect = Objects.isNull(contentLength)?Unpooled.buffer(8192): Unpooled.buffer(contentLength);
 
             }
 
+            if(msg instanceof LastHttpContent) {
+                LastHttpContent lastHttpContent = (LastHttpContent)msg;
+                connect.writeBytes(lastHttpContent.content());
+                returnHandle();
+            }
+            
             if (msg instanceof HttpContent) {
                 HttpContent content = (HttpContent)msg;
-                ByteBuf buf = content.content();
-                System.out.println(buf.toString(io.netty.util.CharsetUtil.UTF_8));
-                buf.release();
+                connect.writeBytes(content.content());
             }
+            
+        }
+
+        private void returnHandle() {
             if (asynReturn.getReturnMode().equals(ReturnMode.SYNS)) {
-                asynReturn.setObject(null);
+                if(Objects.nonNull(throwable) || !Objects.equals(defaultHttpResponse.status() ,HttpResponseStatus.OK) ) {
+                    try {
+                        Object object = ModelManage.getInstance().getModel(asynReturn.getHandleMethod().getRequestInfo().getReturnClazz(), throwable, defaultHttpResponse, connect);
+                        if(Objects.nonNull(object)) {
+                            asynReturn.setObject(object);
+                            return;
+                        }
+                        asynReturn.setObject(throwable);
+                        return;
+                    } catch (Exception e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                }
+                Object object = asynReturn.getSerialize().deserialization(asynReturn.getClass(), connect.array());
+                asynReturn.setObject(object);
+                return;
             }
             if (asynReturn.getReturnMode().equals(ReturnMode.CALL)) {
                 DefaultCall<Object> call = (DefaultCall<Object>)asynReturn.getCall();
-                Response<Object> response = new Response<>((HttpResponse)msg , asynReturn.getSerialize());
+                Response<Object> response = new Response<>(defaultHttpResponse);
                 call.setResponse(response);
+                call.setThrowable(throwable);
                 if (Objects.isNull(call.getCallback())) {
-                     
+                    Callback<Object> callback = call.getCallback();
+                    if(Objects.isNull(throwable)) {
+                        Object object = asynReturn.getSerialize().deserialization(asynReturn.getClass(), connect.array());
+                        callback.onResponse(call, asynReturn.getArgs(), object);
+                    }else {
+                        callback.onFailure(call, asynReturn.getArgs(), throwable);
+                    }
                 } else {
                     asynReturn.setObject(call);
                 }
             }
         }
-
+        
         @Override
         public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
             ctx.fireUserEventTriggered(evt);

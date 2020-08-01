@@ -103,6 +103,9 @@ public class AsynReturn {
 
     public synchronized Object getObject() throws InterruptedException {
         this.wait(requestTimes + 100);
+        if(object instanceof Throwable) {
+            
+        }
         return object;
     }
 }

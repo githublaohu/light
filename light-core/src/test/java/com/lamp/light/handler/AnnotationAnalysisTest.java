@@ -23,6 +23,12 @@ public class AnnotationAnalysisTest {
     }
     
     @Test
+    public void testCall() throws Exception {
+       Method method = clazz.getMethod("testCall", new Class[]{ReturnObject.class,String.class});
+       annotationAnalysis.analysis(method,   requestInfo);
+    }
+    
+    @Test
     public void testHead() throws Exception {
        Method method = clazz.getMethod("testHead", new Class[]{ReturnObject.class,String.class});
        annotationAnalysis.analysis(method,   requestInfo);

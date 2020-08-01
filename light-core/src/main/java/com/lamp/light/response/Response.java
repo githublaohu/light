@@ -1,15 +1,12 @@
 package com.lamp.light.response;
 
-import com.lamp.light.serialize.Serialize;
-
 import io.netty.handler.codec.http.HttpResponse;
 
 // 适配 HttpResponse
+// retrofit2.Response
 public class Response<T> {
 
-    private Serialize serialize;
     
-    public Response(HttpResponse httpResponse, Serialize serialize) {
-        this.serialize = serialize;
+    public Response(HttpResponse httpResponse) {
     }
 }

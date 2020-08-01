@@ -95,17 +95,17 @@ public class AnnotationAnalysis {
         Class<?> returnType = method.getReturnType();
         
         if(Void.class.equals(returnType)) {
-            
+            // 异常
         }
         
         if(Call.class.isAssignableFrom(returnType)) {
             requestInfo.setReturnMode(ReturnMode.CALL);
-            Type returnTypes = BaseUtils.getParameterUpperBound(0, (ParameterizedType)method.getGenericReturnType());
+            returnType = (Class<?>)BaseUtils.getParameterUpperBound(0, (ParameterizedType)method.getGenericReturnType());
         }else {
             requestInfo.setReturnMode(ReturnMode.SYNS);
         }
-        
         requestInfo.setReturnClazz(returnType);
+        
         return requestInfo;
     }
 
