@@ -1,27 +1,26 @@
 package com.lamp.light;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.util.List;
-
-import org.junit.Before;
-import org.junit.Test;
-
 import com.lamp.light.Light.Builder;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-
+import org.junit.Before;
+import org.junit.Test;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.http.GET;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.util.List;
 
 public class LightTest {
     
     ReturnObject returnObject = new ReturnObject();
     
-    //@Before
+    @Before
     public void init() {
+
         
         Thread thread = new Thread(new Runnable() {
             
@@ -62,7 +61,15 @@ public class LightTest {
         returnObject.setId(123);
         returnObject.setKey("key");
     }
+    @Test
+    public void test() throws Exception {
+        Builder builder = Light.Builder();
+        Light light = builder.host("192.168.2.199").port(8844).build();
 
+        TestInterface testInterface = light.create(TestInterface.class);
+        testInterface.testObject(returnObject);
+
+    }
     @Test
     public void testHead() throws Exception {
         Builder builder = Light.Builder();

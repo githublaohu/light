@@ -1,36 +1,20 @@
 package com.lamp.light.handler;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Type;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-
 import com.lamp.light.Call;
-import com.lamp.light.annotation.Body;
-import com.lamp.light.annotation.Cookie;
-import com.lamp.light.annotation.Field;
-import com.lamp.light.annotation.GET;
-import com.lamp.light.annotation.Header;
-import com.lamp.light.annotation.Headers;
-import com.lamp.light.annotation.POST;
-import com.lamp.light.annotation.Path;
-import com.lamp.light.annotation.Query;
+import com.lamp.light.annotation.*;
 import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.FastJsonSerialize;
 import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
-
 import io.netty.handler.codec.http.HttpMethod;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
 
 public class AnnotationAnalysis {
 
@@ -200,9 +184,10 @@ public class AnnotationAnalysis {
             Body body = annotatedElement.getAnnotation(Body.class);
             if (Objects.nonNull(body)) {
                 requestInfo.setIsBody(true);
-                Class<?> serializeClass = body.getClass();
+                Class<?> serializeClass = body.serialize();
                 Serialize serialize = null;
                 if (serializeClass.equals(FastJsonSerialize.class)) {
+                    serialize = new FastJsonSerialize();
                 } else {
                     serialize = (Serialize)body.getClass().newInstance();
                 }

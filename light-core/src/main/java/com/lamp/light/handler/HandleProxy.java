@@ -1,17 +1,5 @@
 package com.lamp.light.handler;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.lamp.light.Interceptor;
 import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.handler.CoordinateHandler.CoordinateHandlerWrapper;
@@ -19,19 +7,20 @@ import com.lamp.light.netty.NettyClient;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.DefaultHttpHeaders;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.QueryStringEncoder;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder.ErrorDataEncoderException;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 
@@ -103,7 +92,9 @@ public class HandleProxy implements InvocationHandler {
         }
         HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod);
         AsynReturn asynReturn = new AsynReturn();
+        asynReturn.setReturnMode(handleMethod.returnMode);
         asynReturn.setFullHttpRequest(defaultFullHttpRequest);
+        asynReturn.setHandleMethod(handleMethod);
         nettyClient.write(asynReturn, inetSocketAddress);
         Object object = null;
         if(handleMethod.returnMode == ReturnMode.SYNS) {
@@ -117,6 +108,7 @@ public class HandleProxy implements InvocationHandler {
 
     public HttpRequest getHttpRequest(Object[] args,HandleMethod handleMethod) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ErrorDataEncoderException {
         CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
+        RequestInfo requestInfo = handleMethod.requestInfo;
         // path
         if (Objects.nonNull(requestInfo.getPathList())) {
             coordinateHandlerWrapper.pathCoordinateHandler.setObject(requestInfo.getUrl());
@@ -147,6 +139,8 @@ public class HandleProxy implements InvocationHandler {
                 // body 协议 httpHeaders
                 byte[] bytes = serialize.serialize(args[requestInfo.getBodyIndex()]);
                 buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
+                httpHeaders.set("Content-Type", "application/json");
+                httpHeaders.set("Content-Length", bytes.length);
             }
         }
         ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
