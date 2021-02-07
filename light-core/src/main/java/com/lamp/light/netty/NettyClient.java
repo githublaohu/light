@@ -1,45 +1,27 @@
 package com.lamp.light.netty;
 
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-
 import com.lamp.light.Callback;
 import com.lamp.light.handler.AsynReturn;
 import com.lamp.light.handler.DefaultCall;
 import com.lamp.light.response.Response;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.ligth.model.ModelManage;
-
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelDuplexHandler;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelId;
-import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPromise;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.DecoderResult;
 import io.netty.handler.codec.DecoderResultProvider;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpRequestEncoder;
-import io.netty.handler.codec.http.HttpResponseDecoder;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.LastHttpContent;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.timeout.IdleStateHandler;
+
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NettyClient {
 
@@ -124,7 +106,7 @@ public class NettyClient {
             if(msg instanceof LastHttpContent) {
                 LastHttpContent lastHttpContent = (LastHttpContent)msg;
                 connect.writeBytes(lastHttpContent.content());
-                returnHandle();
+                returnHandle(ctx);
             }
             
             if (msg instanceof HttpContent) {
@@ -134,10 +116,12 @@ public class NettyClient {
             
         }
 
-        private void returnHandle() {
+        private void returnHandle(ChannelHandlerContext ctx) {
+            asynReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
             if (asynReturn.getReturnMode().equals(ReturnMode.SYNS)) {
                 if(Objects.nonNull(throwable) || !Objects.equals(defaultHttpResponse.status() ,HttpResponseStatus.OK) ) {
                     try {
+                        System.out.println(new String(connect.array()));
                         Object object = ModelManage.getInstance().getModel(asynReturn.getHandleMethod().getRequestInfo().getReturnClazz(), throwable, defaultHttpResponse, connect);
                         if(Objects.nonNull(object)) {
                             asynReturn.setObject(object);

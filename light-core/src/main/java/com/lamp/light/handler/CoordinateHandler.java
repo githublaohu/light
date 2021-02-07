@@ -83,7 +83,7 @@ public interface CoordinateHandler<T,V> {
         @Override
         public void handler(String name, Object value) {
             try {
-                object.addBodyAttribute(name, value);
+                object.addBodyAttribute(name, value.toString());
             } catch (ErrorDataEncoderException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();

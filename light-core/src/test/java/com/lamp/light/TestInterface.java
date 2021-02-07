@@ -1,11 +1,6 @@
 package com.lamp.light;
 
-import com.lamp.light.annotation.Field;
-import com.lamp.light.annotation.Header;
-import com.lamp.light.annotation.Headers;
-import com.lamp.light.annotation.POST;
-import com.lamp.light.annotation.Path;
-import com.lamp.light.annotation.Query;
+import com.lamp.light.annotation.*;
 
 @POST("/testInterface")
 public interface TestInterface {
@@ -23,7 +18,8 @@ public interface TestInterface {
     
     @POST("/testObject/{key}/{id}/{path}")
     public ReturnObject testPath(@Path({"key","id"}) ReturnObject returnObject, @Path("path") String path);
-    
+
+    @Body
     @POST("/testObject")
     public ReturnObject testObject(ReturnObject returnObject);
     

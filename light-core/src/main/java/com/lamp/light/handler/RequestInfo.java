@@ -1,14 +1,14 @@
 package com.lamp.light.handler;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.Serialize;
-
 import io.netty.handler.codec.http.HttpMethod;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class RequestInfo {
 
@@ -24,7 +24,7 @@ public class RequestInfo {
 
     private Type returnClazz;
 
-    private Map<String, String> header;
+    private Map<String, String> header = new HashMap<>();
 
     private List<Coordinate> headerList;
 
