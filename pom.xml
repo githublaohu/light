@@ -11,7 +11,7 @@
         <module>light-core</module>
     </modules>
     <properties>
-        <netty.version>4.1.29.Final</netty.version>
+        <netty.version>4.1.59.Final</netty.version>
         <fastjson.version>1.2.61</fastjson.version>
     </properties>
     <dependencyManagement>
