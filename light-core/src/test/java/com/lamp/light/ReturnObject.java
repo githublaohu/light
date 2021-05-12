@@ -1,9 +1,12 @@
 package com.lamp.light;
 
+/**
+ * mock返回对象
+ */
 public class ReturnObject {
 
     private String key;
-    
+
     private int id;
 
     public String getKey() {
@@ -21,6 +24,4 @@ public class ReturnObject {
     public void setId(int id) {
         this.id = id;
     }
-    
-    
 }

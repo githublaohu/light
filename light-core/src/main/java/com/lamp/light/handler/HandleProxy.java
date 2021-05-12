@@ -23,12 +23,11 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * 
- * HandleProxy <BR>
- * 1. 解析所有的请求信息，与返回基本信息 <BR>
- * 2. 把解析出来的信息，生产netty Request对象<BR>
- * 3. 创建有效的 http china <BR>
- * 4. 发送
+ * HandleProxy  处理请求的代理类 <BR>
+ * <li>1. 解析所有的请求信息，与返回基本信息</li>
+ * <li>2. 把解析出来的信息，生产netty Request对象</li>
+ * <li>3. 创建有效的 http china </li>
+ * <li>4. 发送</li>
  */
 public class HandleProxy implements InvocationHandler {
 
@@ -47,19 +46,20 @@ public class HandleProxy implements InvocationHandler {
 
     private Serialize serialize;
 
-    private Object success ;
-    
+    private Object success;
+
     private Object fail;
-    
-    public HandleProxy(String path , Class<?> proxy, InetSocketAddress inetSocketAddress, List<Interceptor> interceptorList,
-        Serialize serialize, Object success , Object fail) throws Exception {
-        
-        if(Objects.isNull(success)|| Objects.isNull(fail)) {
-            
+
+    public HandleProxy(String path, Class<?> proxy, InetSocketAddress inetSocketAddress, List<Interceptor> interceptorList,
+                       Serialize serialize, Object success, Object fail) throws Exception {
+
+        if (Objects.isNull(success) || Objects.isNull(fail)) {
+
         }
-        
+        //  根据当前clazz解析请求数据
         this.requestInfo = annotationAnalysis.analysis(proxy);
-        this.requestInfo.setUrl(BaseUtils.setSlash(path)+BaseUtils.setSlash(requestInfo.getUrl()) );
+        //  在 annotationAnalysis.analysis(proxy) 方法中已拿到了 url 这里进行二次计算
+        this.requestInfo.setUrl(BaseUtils.setSlash(path) + BaseUtils.setSlash(requestInfo.getUrl()));
         this.interceptorList = interceptorList;
         this.serialize = serialize;
         this.inetSocketAddress = inetSocketAddress;
@@ -67,25 +67,27 @@ public class HandleProxy implements InvocationHandler {
         this.fail = fail;
     }
 
+    @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         if (method.getDeclaringClass() == Object.class) {
             return method.invoke(this, args);
         }
+        //  以下没有method.invoke
         HandleMethod handleMethod = handleMethodMap.get(method);
         if (Objects.isNull(handleMethod)) {
             handleMethod = new HandleMethod();
             handleMethod.requestInfo = annotationAnalysis.analysis(method, this.requestInfo);
-            if(Objects.nonNull(success)) {
+            if (Objects.nonNull(success)) {
                 handleMethod.success = success;
                 handleMethod.fail = fail;
                 handleMethod.returnMode = ReturnMode.ASYSN;
-            }else {
+            } else {
                 handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
             }
             handleMethodMap.put(method, handleMethod);
         }
         RequestInfo requestInfo = handleMethod.requestInfo;
-        if(Objects.nonNull(interceptorList)) {
+        if (Objects.nonNull(interceptorList)) {
             for (Interceptor interceptor : interceptorList) {
                 args = interceptor.handlerBefore(proxy, method, requestInfo, args);
             }
@@ -97,16 +99,16 @@ public class HandleProxy implements InvocationHandler {
         asynReturn.setHandleMethod(handleMethod);
         nettyClient.write(asynReturn, inetSocketAddress);
         Object object = null;
-        if(handleMethod.returnMode == ReturnMode.SYNS) {
-            object =  asynReturn.getObject();
-        }else if(handleMethod.returnMode == ReturnMode.CALL) {
-            asynReturn.setCall(new DefaultCall<>(asynReturn ,nettyClient ,inetSocketAddress));
+        if (handleMethod.returnMode == ReturnMode.SYNS) {
+            object = asynReturn.getObject();
+        } else if (handleMethod.returnMode == ReturnMode.CALL) {
+            asynReturn.setCall(new DefaultCall<>(asynReturn, nettyClient, inetSocketAddress));
             object = asynReturn.getCall();
         }
         return object;
     }
 
-    public HttpRequest getHttpRequest(Object[] args,HandleMethod handleMethod) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ErrorDataEncoderException {
+    public HttpRequest getHttpRequest(Object[] args, HandleMethod handleMethod) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ErrorDataEncoderException {
         CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
         RequestInfo requestInfo = handleMethod.requestInfo;
         // path
@@ -115,7 +117,7 @@ public class HandleProxy implements InvocationHandler {
             coordinateHandler(args, requestInfo.getPathList(), coordinateHandlerWrapper.pathCoordinateHandler);
         }
         // query
-        QueryStringEncoder queryStringEncoder = new QueryStringEncoder( requestInfo.getUrl() );
+        QueryStringEncoder queryStringEncoder = new QueryStringEncoder(requestInfo.getUrl());
         if (Objects.nonNull(requestInfo.getQueryList())) {
             coordinateHandlerWrapper.queryCoordinateHandler.setObject(queryStringEncoder);
             coordinateHandler(args, requestInfo.getQueryList(), coordinateHandlerWrapper.queryCoordinateHandler);
@@ -145,7 +147,7 @@ public class HandleProxy implements InvocationHandler {
         }
         ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
         defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
-            queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
+                queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
         if (Objects.nonNull(requestInfo.getFieldList())) {
             HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
             coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
@@ -154,51 +156,50 @@ public class HandleProxy implements InvocationHandler {
         }
         return defaultFullHttpRequest;
     }
-    
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     private void coordinateHandler(Object[] args, List<Coordinate> coordinateList, CoordinateHandler coordinateHandler)
-        throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
         // 要支持form的list
         for (Coordinate coordinate : coordinateList) {
             Object object = args[coordinate.getIndex()];
             if (Objects.equals(coordinate.getType(), ParametersType.BASIC)
-                || Objects.equals(coordinate.getType(), ParametersType.PACKING)) {
+                    || Objects.equals(coordinate.getType(), ParametersType.PACKING)) {
                 coordinateHandler.handler(coordinate.getKey(), object.toString());
             } else if (Objects.equals(coordinate.getType(), ParametersType.STRING)) {
-                coordinateHandler.handler(coordinate.getKey(), (String)object);
+                coordinateHandler.handler(coordinate.getKey(), (String) object);
             } else if (Objects.equals(coordinate.getType(), ParametersType.MAP)) {
-                Map<String, Object> map = (Map<String, Object>)object;
+                Map<String, Object> map = (Map<String, Object>) object;
                 if (Objects.isNull(coordinate.getKey())) {
                     for (Entry<String, Object> e : map.entrySet()) {
                         coordinateHandler.handler(e.getKey(), TypeToString.ObjectToString(e.getValue()));
                     }
                 } else {
                     coordinateHandler.handler(coordinate.getKey(),
-                        TypeToString.ObjectToString(map.get(coordinate.getKey())));
+                            TypeToString.ObjectToString(map.get(coordinate.getKey())));
                 }
             } else if (Objects.equals(coordinate.getType(), ParametersType.OBJECT)) {
                 coordinateHandler.handler(coordinate.getKey(),
-                    TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
+                        TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
             }
         }
         coordinateHandler.clean();
     }
 
-    
-    
-   public static class HandleMethod {
+
+    public static class HandleMethod {
         private RequestInfo requestInfo;
 
         private Method method;
-        
+
         private Serialize serialize;
-                
+
         private Integer requestTimes = 30000;
-        
-        private Object success ;
-        
+
+        private Object success;
+
         private Object fail;
-        
+
         private ReturnMode returnMode;
 
         public RequestInfo getRequestInfo() {
@@ -256,7 +257,7 @@ public class HandleProxy implements InvocationHandler {
         public void setReturnMode(ReturnMode returnMode) {
             this.returnMode = returnMode;
         }
-        
-        
+
+
     }
 }

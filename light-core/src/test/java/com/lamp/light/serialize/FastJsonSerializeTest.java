@@ -16,7 +16,7 @@ public class FastJsonSerializeTest {
         Method method = this.getClass().getMethod("getTest");
         Class<?> clazz = method.getReturnType();
         
-        Map<String , Testsss> map = new HashMap<String, FastJsonSerializeTest.Testsss>();
+        Map<String , Testsss> map = new HashMap<>();
         Testsss testsss = new Testsss();
         testsss.setStes("123123");
         map.put("123", testsss);
