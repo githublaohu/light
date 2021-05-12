@@ -1,17 +1,19 @@
 package com.lamp.light;
 
+import com.lamp.light.handler.HandleProxy;
+import com.lamp.light.serialize.FastJsonSerialize;
+import com.lamp.light.serialize.Serialize;
+
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.lamp.light.handler.HandleProxy;
-import com.lamp.light.serialize.FastJsonSerialize;
-import com.lamp.light.serialize.Serialize;
-
 public class Light {
-
+    /**
+     * ip address & port number
+     */
     private InetSocketAddress inetSocketAddress;
 
     private List<Interceptor> interceptorList;
@@ -20,8 +22,16 @@ public class Light {
 
     private String path;
 
+    /**
+     * @param clazz the class that needs to be proxied
+     * @param <T>   type
+     * @return
+     * @throws Exception
+     */
     public <T> T create(Class<?> clazz) throws Exception {
+        //  check 其中create
         validateServiceInterface(clazz);
+        //  create
         return create(clazz, null);
     }
 
@@ -31,10 +41,14 @@ public class Light {
 
     @SuppressWarnings("unchecked")
     public <T> T create(Class<?> clazz, Object success, Object fail) throws Exception {
-        validateServiceInterface(clazz);
-        return (T)getObject(clazz, success , fail);
+        return (T) getObject(clazz, success, fail);
     }
 
+    /**
+     * check
+     *
+     * @param clazz
+     */
     private void validateServiceInterface(Class<?> clazz) {
         if (Objects.isNull(clazz)) {
 
@@ -44,10 +58,22 @@ public class Light {
         }
     }
 
+    /**
+     * get proxy instance
+     *
+     * @param clazz
+     * @param success
+     * @param fail
+     * @return
+     * @throws Exception
+     */
     private Object getObject(Class<?> clazz, Object success, Object fail) throws Exception {
+        //  创建执行逻辑代理类
         HandleProxy handleProxy =
-            new HandleProxy(path, clazz, inetSocketAddress, interceptorList, serialize, success, fail);
-        return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] {clazz}, handleProxy);
+                //  真实执行
+                new HandleProxy(path, clazz, inetSocketAddress, interceptorList, serialize, success, fail);
+        //  为当前 clazz 返回
+        return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, handleProxy);
     }
 
     public static Builder Builder() {

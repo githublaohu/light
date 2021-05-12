@@ -50,26 +50,29 @@ public class AnnotationAnalysis {
     }
 
     public RequestInfo analysis(Class<?> clazz) throws Exception {
+        //  构建请求上下文
         RequestInfo requestInfo = new RequestInfo();
-        readHeader(clazz, requestInfo, null);
+        //  解析Header
+        readHeaders(clazz, requestInfo, null);
+        //  解析Method
         readHttpMethod(clazz, requestInfo);
         return requestInfo;
     }
 
     public RequestInfo analysis(Method method, RequestInfo classRequestInfo) throws Exception {
+        //  构建请求上下文
         RequestInfo requestInfo = new RequestInfo();
-        readHeader(method, requestInfo, classRequestInfo);
-
+        readHeaders(method, requestInfo, classRequestInfo);
         readHttpMethod(method, requestInfo);
         if (Objects.isNull(requestInfo.getHttpMethod())) {
             if (Objects.isNull(classRequestInfo.getHttpMethod())) {
-                // 异常
+                // 异常 fixme 这里的防御性检查可以放在HandleProxy的构造方法内
             }
             requestInfo.setUrl(classRequestInfo.getUrl() + "/" + requestInfo.getMethod().getName());
         } else {
             if (Objects.nonNull(classRequestInfo.getHttpMethod())) {
                 requestInfo
-                    .setUrl(BaseUtils.setSlash(classRequestInfo.getUrl()) + BaseUtils.setSlash(requestInfo.getUrl()));
+                        .setUrl(BaseUtils.setSlash(classRequestInfo.getUrl()) + BaseUtils.setSlash(requestInfo.getUrl()));
             }
         }
         Parameter[] parameters = method.getParameters();
@@ -77,26 +80,34 @@ public class AnnotationAnalysis {
             readParameter(parameters, requestInfo);
         }
         Class<?> returnType = method.getReturnType();
-        
-        if(Void.class.equals(returnType)) {
+
+        if (Void.class.equals(returnType)) {
             // 异常
         }
-        
-        if(Call.class.isAssignableFrom(returnType)) {
+
+        if (Call.class.isAssignableFrom(returnType)) {
             requestInfo.setReturnMode(ReturnMode.CALL);
-            returnType = (Class<?>)BaseUtils.getParameterUpperBound(0, (ParameterizedType)method.getGenericReturnType());
-        }else {
+            returnType = (Class<?>) BaseUtils.getParameterUpperBound(0, (ParameterizedType) method.getGenericReturnType());
+        } else {
             requestInfo.setReturnMode(ReturnMode.SYNS);
         }
         requestInfo.setReturnClazz(returnType);
-        
+
         return requestInfo;
     }
 
-    private void readHeader(AnnotatedElement annotatedElement, RequestInfo requestInfo, RequestInfo classRequestInfo) {
+    /**
+     * 从annotatedElement中解析Headers数据
+     *
+     * @param annotatedElement 带注解的对象
+     * @param requestInfo      请求上下文
+     * @param classRequestInfo
+     */
+    private void readHeaders(AnnotatedElement annotatedElement, RequestInfo requestInfo, RequestInfo classRequestInfo) {
+        // FIXME: 2021/5/12 该方法传入两个RequestInfo 主要是用于给header的赋值 应该可以优化
         Headers headers = annotatedElement.getAnnotation(Headers.class);
         if (Objects.nonNull(headers)
-            || (Objects.nonNull(classRequestInfo) && Objects.nonNull(classRequestInfo.getHeader()))) {
+                || (Objects.nonNull(classRequestInfo) && Objects.nonNull(classRequestInfo.getHeader()))) {
             Map<String, String> headerMap = new HashMap<>();
             if (Objects.nonNull(classRequestInfo) && Objects.nonNull(classRequestInfo.getHeader())) {
                 headerMap.putAll(classRequestInfo.getHeader());
@@ -104,6 +115,7 @@ public class AnnotationAnalysis {
             if (Objects.nonNull(headers)) {
                 String[] values = headers.value();
                 for (String value : values) {
+                    //  Headers以 kv 形式存储，该地方写死 :
                     String[] headerKeyValue = value.split(":");
                     headerMap.put(headerKeyValue[0], headerKeyValue[1]);
                 }
@@ -118,14 +130,14 @@ public class AnnotationAnalysis {
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             Class<?> clazz = parameter.getType();
-            
+
             Annotation[] annotations = parameter.getAnnotations();
             if (Objects.isNull(null) || annotations.length == 0) {
                 // 通过方法识别，get 默认是query，post默认是 body或者 field
             }
             for (Annotation annotation : annotations) {
                 Class<?> dataClazz = DATA_ANNOTION.get(annotation.annotationType());
-                ParametersType type = getParametersType(clazz,dataClazz);
+                ParametersType type = getParametersType(clazz, dataClazz);
                 if (Objects.isNull(dataClazz)) {
                     continue;
                 }
@@ -135,9 +147,9 @@ public class AnnotationAnalysis {
                     clazzMap.put(dataClazz, coordinateList);
                 }
 
-                String[] values = (String[])DATA_ANNOTION_METHOD.get(dataClazz).invoke(annotation);
+                String[] values = (String[]) DATA_ANNOTION_METHOD.get(dataClazz).invoke(annotation);
                 if (Objects.equals(type, ParametersType.BASIC) || Objects.equals(type, ParametersType.PACKING)
-                    || Objects.equals(type, ParametersType.STRING)) {
+                        || Objects.equals(type, ParametersType.STRING)) {
                     if (values.length == 0 || values.length > 1) {
                         // 异常
                     }
@@ -161,7 +173,8 @@ public class AnnotationAnalysis {
                     } else {
                         for (String value : values) {
                             createCoordinate(coordinateList, value, index, ParametersType.OBJECT,
-                                getMethod(value, clazz));;
+                                    getMethod(value, clazz));
+                            ;
                         }
                     }
                 }
@@ -174,22 +187,31 @@ public class AnnotationAnalysis {
         requestInfo.setFieldList(clazzMap.get(Field.class));
     }
 
+    /**
+     * 为requestInfo赋 请求方法 以及url
+     *
+     * @param annotatedElement
+     * @param requestInfo
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
     private void readHttpMethod(AnnotatedElement annotatedElement, RequestInfo requestInfo)
-        throws InstantiationException, IllegalAccessException {
+            throws InstantiationException, IllegalAccessException {
         // 读取http方法
         POST post = annotatedElement.getAnnotation(POST.class);
         if (Objects.nonNull(post)) {
             requestInfo.setHttpMethod(HttpMethod.POST);
             requestInfo.setUrl(post.value());
+            //  请求数据是个类对象，需要进行序列化
             Body body = annotatedElement.getAnnotation(Body.class);
             if (Objects.nonNull(body)) {
                 requestInfo.setIsBody(true);
                 Class<?> serializeClass = body.serialize();
-                Serialize serialize = null;
+                Serialize serialize;
                 if (serializeClass.equals(FastJsonSerialize.class)) {
                     serialize = new FastJsonSerialize();
                 } else {
-                    serialize = (Serialize)body.getClass().newInstance();
+                    serialize = (Serialize) body.getClass().newInstance();
                 }
                 requestInfo.setSerialize(serialize);
             }
@@ -204,7 +226,7 @@ public class AnnotationAnalysis {
     }
 
     private static void getCoordinateByClass(Class<?> clazz, int index, ParametersType type,
-        List<Coordinate> coordinateList) {
+                                             List<Coordinate> coordinateList) {
 
         java.lang.reflect.Field[] fields = clazz.getFields();
         for (java.lang.reflect.Field field : fields) {
@@ -217,7 +239,7 @@ public class AnnotationAnalysis {
     }
 
     private static Boolean createCoordinate(List<Coordinate> coordinateList, String key, int index, ParametersType type,
-        Method method) {
+                                            Method method) {
         Coordinate coordinate = new Coordinate();
         coordinate.setIndex(index);
         coordinate.setType(type);
@@ -241,7 +263,7 @@ public class AnnotationAnalysis {
         }
     }
 
-    private ParametersType getParametersType(Class<?> clazz,Class<?> dataClazz) {
+    private ParametersType getParametersType(Class<?> clazz, Class<?> dataClazz) {
         if (clazz.isPrimitive()) {
             return ParametersType.BASIC;
         }
