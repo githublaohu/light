@@ -9,16 +9,29 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PSL v2 for more details.
  */
-package com.lamp.light;
+package com.lamp.light.annotation;
 
-public class LightContext {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    private static final ThreadLocal<LightContext> CONTEXT_LOCAL = new ThreadLocal<LightContext>() {
-        protected LightContext initialValue() {
-            return new LightContext();
-        }
-    };
+/**
+ * 
+ * @author laohu
+ *
+ */
+@Documented
+@Target({ElementType.TYPE , ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Scope {
 
-    
-    
+	String name();
+	
+	Class<?>[] clazz() default {};
+	
+	String[] clazzName() default {};
+	
+	String[] packageName() default {};
 }

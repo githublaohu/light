@@ -1,11 +1,7 @@
-package com.lamp.light;
+package org.example.spring.mvc;
 
 /**
  * mock返回对象
- */
-/**
- * @author laohu
- *
  */
 public class ReturnObject {
 
@@ -28,11 +24,4 @@ public class ReturnObject {
     public void setId(int id) {
         this.id = id;
     }
-
-	@Override
-	public String toString() {
-		return "ReturnObject [key=" + key + ", id=" + id + "]";
-	}
-    
-    
 }

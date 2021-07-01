@@ -1,3 +1,14 @@
+/*
+ *Copyright (c) [Year] [name of copyright holder]
+ *[Software Name] is licensed under Mulan PSL v2.
+ *You can use this software according to the terms and conditions of the Mulan PSL v2.
+ *You may obtain a copy of Mulan PSL v2 at:
+ *         http://license.coscl.org.cn/MulanPSL2
+ *THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
+ *EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
+ *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
+ *See the Mulan PSL v2 for more details.
+ */
 package com.lamp.light.handler;
 
 import com.lamp.light.Interceptor;
@@ -36,9 +47,11 @@ public class HandleProxy implements InvocationHandler {
     private Map<Method, HandleMethod> handleMethodMap = new ConcurrentHashMap<>();
 
     // http1.1支持
-    private NettyClient nettyClient = new NettyClient();
+    private NettyClient nettyClient;
 
     private InetSocketAddress inetSocketAddress;
+    
+    private String socketAddress;
 
     private List<Interceptor> interceptorList = new ArrayList<>();
 
@@ -50,9 +63,9 @@ public class HandleProxy implements InvocationHandler {
 
     private Object fail;
 
-    public HandleProxy(String path, Class<?> proxy, InetSocketAddress inetSocketAddress, List<Interceptor> interceptorList,
+    public HandleProxy(NettyClient nettyClient,String path, Class<?> proxy, InetSocketAddress inetSocketAddress, List<Interceptor> interceptorList,
                        Serialize serialize, Object success, Object fail) throws Exception {
-
+    	this.nettyClient = nettyClient;
         if (Objects.isNull(success) || Objects.isNull(fail)) {
 
         }
@@ -65,6 +78,8 @@ public class HandleProxy implements InvocationHandler {
         this.inetSocketAddress = inetSocketAddress;
         this.success = success;
         this.fail = fail;
+        this.socketAddress = inetSocketAddress.toString();
+        this.socketAddress = socketAddress.substring(1,socketAddress.length());
     }
 
     @Override
@@ -93,10 +108,16 @@ public class HandleProxy implements InvocationHandler {
             }
         }
         HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod);
+        if (Objects.nonNull(interceptorList)) {
+            for (Interceptor interceptor : interceptorList) {
+            	defaultFullHttpRequest = interceptor.handlerRequest(requestInfo, defaultFullHttpRequest);
+            }
+        }
         AsynReturn asynReturn = new AsynReturn();
         asynReturn.setReturnMode(handleMethod.returnMode);
         asynReturn.setFullHttpRequest(defaultFullHttpRequest);
         asynReturn.setHandleMethod(handleMethod);
+        asynReturn.setSerialize(serialize);
         nettyClient.write(asynReturn, inetSocketAddress);
         Object object = null;
         if (handleMethod.returnMode == ReturnMode.SYNS) {
@@ -145,6 +166,7 @@ public class HandleProxy implements InvocationHandler {
                 httpHeaders.set("Content-Length", bytes.length);
             }
         }
+        httpHeaders.set(HttpHeaderNames.HOST,socketAddress);
         ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
         defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
                 queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
