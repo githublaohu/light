@@ -13,7 +13,7 @@
 	</modules>
 	<properties>
 		<reversion>0.0.1</reversion>
-		<netty.version>4.1.29.Final</netty.version>
+		<netty.version>4.1.71.Final</netty.version>
 		<fastjson.version>1.2.61</fastjson.version>
 	</properties>
 	<dependencyManagement>
