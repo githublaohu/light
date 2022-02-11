@@ -7,6 +7,34 @@
 	<artifactId>light</artifactId>
 	<version>${reversion}</version>
 	<packaging>pom</packaging>
+	<url>https://github.com/githublaohu/light</url>
+	<name>ligth</name>
+	<scm>
+		<url>git@github.com:githublaohu/light.git</url>
+		<connection>scm:git@github.com:githublaohu/light.git</connection>
+		<developerConnection>scm:git@github.com:githublaohu/light.git</developerConnection>
+		<tag>HEAD</tag>
+	</scm>
+	<description>light</description>
+	<developers>
+		<developer>
+			<name>laohu</name>
+			<email>2372554140@qq.com</email>
+		</developer>
+	</developers>
+	<licenses>
+		<license>
+			<name>The license Software License, Version 2.0</name>
+			<url>http://license.coscl.org.cn/MulanPubL-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<issueManagement>
+		<system>github</system>
+		<url>https://github.com/githublaohu/light/issue</url>
+	</issueManagement>
+
 	<modules>
 		<module>light-core</module>
 		<module>example</module>
@@ -46,6 +74,69 @@
 					<target>1.8</target>
 				</configuration>
 			</plugin>
+
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>release</id>
+			<build>
+				<plugins>
+					<!-- Source -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jar-no-fork</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- Javadoc -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>2.9.1</version>
+						<executions>
+							<execution>
+								<phase>package</phase>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<!-- GPG -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.5</version>
+						<executions>
+							<execution>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+
+            <distributionManagement>
+                <snapshotRepository>
+                    <id>sonatype</id>
+                    <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+                </snapshotRepository>
+                <repository>
+                    <id>sonatype</id>
+                    <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+                </repository>
+            </distributionManagement>
+		</profile>
+	</profiles>
 </project>

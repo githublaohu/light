@@ -1,13 +1,13 @@
 /*
  *Copyright (c) [Year] [name of copyright holder]
- *[Software Name] is licensed under Mulan PSL v2.
- *You can use this software according to the terms and conditions of the Mulan PSL v2.
- *You may obtain a copy of Mulan PSL v2 at:
- *         http://license.coscl.org.cn/MulanPSL2
+ *[Software Name] is licensed under Mulan PubL v2.
+ *You can use this software according to the terms and conditions of the Mulan PubL v2.
+ *You may obtain a copy of Mulan PubL v2 at:
+ *         http://license.coscl.org.cn/MulanPubL-2.0
  *THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
  *EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
- *See the Mulan PSL v2 for more details.
+ *See the Mulan PubL v2 for more details.
  */
 package com.lamp.light;
 
@@ -29,17 +29,7 @@ import com.lamp.light.serialize.FastJsonSerialize;
 import com.lamp.light.serialize.Serialize;
 
 /**
- * 完成下面，ligth基本完成
- * <ol> 默认请求方式，默认都是post，json,path( 类型去掉后缀+方法名)</ol>
- * <ol> 解析传递对象 </ol>
- * <ol> 支持http2.0 </ol>
- * <ol> 支持http1.1 </ol>
- * <ol> 支持spring boot，配置数据读取，配置设计 </ol>
- * <ol> 接口与Interceptor作用域，用于在复杂的情况，主动识别 </ol>
- * <ol> mapper,反Mapper 设计 </ol>
- * <ol> 文件上传 </ol>
- * <ol> http 请求方法补齐，使用迭代器或者策略模式完成</ol>
- * 
+ *  
  * @author laohu
  *
  */
@@ -67,8 +57,8 @@ public class Light {
 	/**
 	 * @param clazz the class that needs to be proxied
 	 * @param       <T> type
-	 * @return
-	 * @throws Exception
+	 * @return class
+	 * @throws Exception 未知
 	 */
 	public <T> T create(Class<?> clazz) throws Exception {
 		// check 其中create
@@ -106,8 +96,8 @@ public class Light {
 	 * @param clazz
 	 * @param success
 	 * @param fail
-	 * @return
-	 * @throws Exception
+	 * @return object
+	 * @throws Exception 未知
 	 */
 	private Object getObject(Class<?> clazz, Object success, Object fail) throws Exception {
 		// 创建执行逻辑代理类

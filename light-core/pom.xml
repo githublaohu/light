@@ -7,11 +7,11 @@
 	<parent>
 		<groupId>cn.lampup</groupId>
 		<artifactId>light</artifactId>
-		<version>${reversion}</version>
+		<version>0.0.1</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<artifactId>light-core</artifactId>
-	<name>lttp</name>
+	<name>light-core-${project.version}</name>
 	<url>http://maven.apache.org</url>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -1,13 +1,13 @@
 /*
  *Copyright (c) [Year] [name of copyright holder]
- *[Software Name] is licensed under Mulan PSL v2.
- *You can use this software according to the terms and conditions of the Mulan PSL v2.
- *You may obtain a copy of Mulan PSL v2 at:
- *         http://license.coscl.org.cn/MulanPSL2
+ *[Software Name] is licensed under Mulan PubL v2.
+ *You can use this software according to the terms and conditions of the Mulan PubL v2.
+ *You may obtain a copy of Mulan PubL v2 at:
+ *         http://license.coscl.org.cn/MulanPubL-2.0
  *THIS SOFTWARE IS PROVIDED ON AN "AS IS" BASIS, WITHOUT WARRANTIES OF ANY KIND,
  *EITHER EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO NON-INFRINGEMENT,
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
- *See the Mulan PSL v2 for more details.
+ *See the Mulan PubL v2 for more details.
  */
 package com.lamp.light.handler;
 
@@ -33,13 +33,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * HandleProxy  处理请求的代理类 <BR>
- * <li>1. 解析所有的请求信息，与返回基本信息</li>
- * <li>2. 把解析出来的信息，生产netty Request对象</li>
- * <li>3. 创建有效的 http china </li>
- * <li>4. 发送</li>
- */
+
 public class HandleProxy implements InvocationHandler {
 
     private AnnotationAnalysis annotationAnalysis = new AnnotationAnalysis();
@@ -153,7 +147,12 @@ public class HandleProxy implements InvocationHandler {
             coordinateHandlerWrapper.headerCoordinateHandler.setObject(httpHeaders);
             coordinateHandler(args, requestInfo.getHeaderList(), coordinateHandlerWrapper.headerCoordinateHandler);
         }
-
+        
+        // cookie
+        if(Objects.nonNull(requestInfo.getCookieList())) {
+        	coordinateHandler(args, requestInfo.getCookieList(), coordinateHandlerWrapper.headerCoordinateHandler);
+        }
+        
         // HttpPostRequestEncoder 用于post请求
         HttpRequest defaultFullHttpRequest;
         ByteBuf buffer = Unpooled.EMPTY_BUFFER;
@@ -174,7 +173,7 @@ public class HandleProxy implements InvocationHandler {
             HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
             coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
             coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
-            //defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
+            
         }
         return defaultFullHttpRequest;
     }
