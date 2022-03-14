@@ -25,6 +25,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.lamp.light.handler.HandleProxy;
 import com.lamp.light.netty.NettyClient;
+import com.lamp.light.route.DefaultRouteSelect;
+import com.lamp.light.route.RouteSelect;
 import com.lamp.light.serialize.FastJsonSerialize;
 import com.lamp.light.serialize.Serialize;
 
@@ -38,6 +40,8 @@ public class Light {
 	 * ip address & port number
 	 */
 	private InetSocketAddress inetSocketAddress;
+	
+	private RouteSelect routeSelect;
 
 	private List<Interceptor> interceptorList;
 
@@ -103,7 +107,7 @@ public class Light {
 		// 创建执行逻辑代理类
 		HandleProxy handleProxy =
 				// 真实执行
-				new HandleProxy(nettyClient,path, clazz, inetSocketAddress, interceptorList, serialize, success, fail);
+				new HandleProxy(nettyClient,path, clazz, routeSelect, interceptorList, serialize, success, fail);
 		// 为当前 clazz 返回
 		return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz }, handleProxy);
 	}
@@ -125,6 +129,8 @@ public class Light {
 		private Serialize serialize;
 
 		private List<Interceptor> interceptorList;
+		
+		private RouteSelect routeSelect;
 
 		private Executor executor;
 
@@ -152,6 +158,11 @@ public class Light {
 			this.serialize = serialize;
 			return this;
 		}
+		
+		public Builder serialize(RouteSelect routeSelect) {
+			this.routeSelect = routeSelect;
+			return this;
+		}
 
 		public Builder interceptor(Interceptor interceptor) {
 			if (this.interceptorList == null) {
@@ -171,7 +182,11 @@ public class Light {
 			if (Objects.isNull(serialize)) {
 				this.serialize = new FastJsonSerialize();
 			}
-			light.inetSocketAddress = new InetSocketAddress(host, port);
+			if(Objects.isNull(routeSelect)) {
+				light.inetSocketAddress = new InetSocketAddress(host, port);
+				this.routeSelect = new DefaultRouteSelect(light.inetSocketAddress);
+			}
+			light.routeSelect = routeSelect;
 			light.serialize = serialize;
 			light.interceptorList = interceptorList;
 			if (Objects.isNull(this.executor)) {

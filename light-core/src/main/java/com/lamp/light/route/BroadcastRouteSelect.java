@@ -9,17 +9,11 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light;
+package com.lamp.light.route;
 
-public class LightContext {
+import java.util.List;
 
-    @SuppressWarnings("unused")
-	private static final ThreadLocal<LightContext> CONTEXT_LOCAL = new ThreadLocal<LightContext>() {
-        protected LightContext initialValue() {
-            return new LightContext();
-        }
-    };
+public interface BroadcastRouteSelect extends RouteSelect {
 
-    
-    
+	public List<LampInstance> selects(Object[] args, Class<?> clazz);
 }

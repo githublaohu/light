@@ -1,23 +1,20 @@
 package com.lamp.light;
 
-import com.lamp.light.Light.Builder;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import org.junit.Before;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import java.util.List;
+
 import org.junit.Test;
+
+import com.lamp.light.Light.Builder;
+import com.sun.net.httpserver.HttpServer;
+
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.http.GET;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringBufferInputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.InetSocketAddress;
-import java.util.List;
-
+@SuppressWarnings("restriction")
 public class LightTest {
 
 	ReturnObject returnObject = new ReturnObject();
@@ -26,7 +23,6 @@ public class LightTest {
 	public void init() {
 		// 启动http服务
 		Thread thread = new Thread(new Runnable() {
-			@SuppressWarnings("restriction")
 			@Override
 			public void run() {
 				HttpServer server;

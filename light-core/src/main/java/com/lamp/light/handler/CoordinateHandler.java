@@ -88,8 +88,7 @@ public interface CoordinateHandler<T, V> {
 			try {
 				object.addBodyAttribute(name, value);
 			} catch (ErrorDataEncoderException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 	}
@@ -100,8 +99,7 @@ public interface CoordinateHandler<T, V> {
 			try {
 				object.addBodyAttribute(name, value.toString());
 			} catch (ErrorDataEncoderException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 	}

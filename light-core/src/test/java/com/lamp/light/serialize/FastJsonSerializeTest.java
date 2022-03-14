@@ -11,7 +11,8 @@ public class FastJsonSerializeTest {
     
     FastJsonSerialize fastJsonSerialize = new FastJsonSerialize();
     
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testCollection() throws NoSuchMethodException, SecurityException {
         Method method = this.getClass().getMethod("getTest");
         Class<?> clazz = method.getReturnType();
