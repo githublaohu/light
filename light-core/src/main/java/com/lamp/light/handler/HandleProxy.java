@@ -16,6 +16,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,6 +25,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.lamp.light.Interceptor;
+import com.lamp.light.LightConstant;
+import com.lamp.light.LightContext;
 import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.handler.CoordinateHandler.CoordinateHandlerWrapper;
 import com.lamp.light.netty.NettyClient;
@@ -34,18 +37,19 @@ import com.lamp.light.route.LampInstance;
 import com.lamp.light.route.RouteSelect;
 import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
+import com.lamp.light.util.StringReplace;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.http.DefaultFullHttpRequest;
 import io.netty.handler.codec.http.DefaultHttpHeaders;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.codec.http.QueryStringEncoder;
-import io.netty.handler.codec.http.cookie.ClientCookieEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder.ErrorDataEncoderException;
 
@@ -108,6 +112,9 @@ public class HandleProxy implements InvocationHandler {
 		if (Objects.isNull(handleMethod)) {
 			handleMethod = new HandleMethod();
 			handleMethod.requestInfo = annotationAnalysis.analysis(method, this.requestInfo);
+			if(Objects.nonNull(requestInfo.getPathList())) {
+				requestInfo.setStringReplace(new StringReplace(requestInfo.getUrl()));
+			}
 			if (Objects.nonNull(success)) {
 				handleMethod.success = success;
 				handleMethod.fail = fail;
@@ -148,17 +155,25 @@ public class HandleProxy implements InvocationHandler {
 			}
 		}
 		AsynReturn asynReturn = new AsynReturn();
-		asynReturn.setReturnMode(handleMethod.returnMode);
-		asynReturn.setFullHttpRequest(defaultFullHttpRequest);
-		asynReturn.setHandleMethod(handleMethod);
-		asynReturn.setSerialize(serialize);
+		asynReturn.returnMode(handleMethod.returnMode);
+		asynReturn.fullHttpRequest(defaultFullHttpRequest);
+		asynReturn.handleMethod(handleMethod);
+		asynReturn.serialize(serialize);
+		
+		if(Objects.nonNull(this.success)) {
+			asynReturn.returnMode(ReturnMode.ASYSN);
+			asynReturn.lightContext(LightContext.lightContext());
+			asynReturn.args(args);
+			LightContext.remove();
+		}
+		
 		nettyClient.write(asynReturn, inetSocketAddress);
 		Object object = null;
 		if (handleMethod.returnMode == ReturnMode.SYNS) {
 			object = asynReturn.getObject();
 		} else if (handleMethod.returnMode == ReturnMode.CALL) {
-			asynReturn.setCall(new DefaultCall<>(asynReturn, nettyClient, inetSocketAddress));
-			object = asynReturn.getCall();
+			asynReturn.call(new DefaultCall<>(asynReturn, nettyClient, inetSocketAddress));
+			object = asynReturn.call();
 		}
 		return object;
 	}
@@ -167,13 +182,16 @@ public class HandleProxy implements InvocationHandler {
 			IllegalArgumentException, InvocationTargetException, ErrorDataEncoderException {
 		CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
 		RequestInfo requestInfo = handleMethod.requestInfo;
+		String url = requestInfo.getUrl();
 		// path
 		if (Objects.nonNull(requestInfo.getPathList())) {
-			coordinateHandlerWrapper.pathCoordinateHandler.setObject(requestInfo.getUrl());
+			Map<String,String>  pathMap = new HashMap<>();
+			coordinateHandlerWrapper.pathCoordinateHandler.setObject(pathMap);
 			coordinateHandler(args, requestInfo.getPathList(), coordinateHandlerWrapper.pathCoordinateHandler);
+			url = handleMethod.requestInfo.getStringReplace().replace(pathMap);
 		}
 		// query
-		QueryStringEncoder queryStringEncoder = new QueryStringEncoder(requestInfo.getUrl());
+		QueryStringEncoder queryStringEncoder = new QueryStringEncoder(url);
 		if (Objects.nonNull(requestInfo.getQueryList())) {
 			coordinateHandlerWrapper.queryCoordinateHandler.setObject(queryStringEncoder);
 			coordinateHandler(args, requestInfo.getQueryList(), coordinateHandlerWrapper.queryCoordinateHandler);
@@ -197,24 +215,36 @@ public class HandleProxy implements InvocationHandler {
 		// HttpPostRequestEncoder 用于post请求
 		HttpRequest defaultFullHttpRequest;
 		ByteBuf buffer = Unpooled.EMPTY_BUFFER;
-		if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod())) {
+		if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod()) || Objects.equals(HttpMethod.PUT, handleMethod.requestInfo.getHttpMethod())) {
 			if (requestInfo.getIsBody()) {
 				// body 协议 httpHeaders
 				byte[] bytes = serialize.serialize(args[requestInfo.getBodyIndex()]);
 				buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
-				httpHeaders.set("Content-Type", "application/json");
-				httpHeaders.set("Content-Length", bytes.length);
+				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+				httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
+			}else {
+				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
 			}
 		}
+		
+		if(LightConstant.PROTOCOL_HTTP_11.equals(handleMethod.getRequestInfo().getProtocol())) {
+			httpHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+		}
+		
 		httpHeaders.set(HttpHeaderNames.HOST, this.getHttpHeaderByHost(inetSocketAddress));
-		ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
+		//ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
 		defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
 				queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
 		if (Objects.nonNull(requestInfo.getFieldList())) {
 			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
 			coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
 			coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
-
+			
+			if(Objects.nonNull(requestInfo.getMultipartList())) {
+				coordinateHandlerWrapper.uploadCoordinateHandler.setObject(httpPostRequestEncoder);
+				coordinateHandler(args, requestInfo.getMultipartList(), coordinateHandlerWrapper.uploadCoordinateHandler);
+			}
+			defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
 		}
 		return defaultFullHttpRequest;
 	}
@@ -271,7 +301,11 @@ public class HandleProxy implements InvocationHandler {
 		private Object fail;
 
 		private ReturnMode returnMode;
+		
+		private boolean isSecurity = false;
 
+		
+		
 		public RequestInfo getRequestInfo() {
 			return requestInfo;
 		}
@@ -328,5 +362,13 @@ public class HandleProxy implements InvocationHandler {
 			this.returnMode = returnMode;
 		}
 
+		public boolean isSecurity() {
+			return isSecurity;
+		}
+
+		public void setSecurity(boolean isSecurity) {
+			this.isSecurity = isSecurity;
+		}
+		
 	}
 }

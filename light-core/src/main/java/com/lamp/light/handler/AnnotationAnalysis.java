@@ -11,21 +11,42 @@
  */
 package com.lamp.light.handler;
 
-import com.lamp.light.Call;
-import com.lamp.light.annotation.*;
-import com.lamp.light.handler.Coordinate.ParametersType;
-import com.lamp.light.response.ReturnMode;
-import com.lamp.light.serialize.FastJsonSerialize;
-import com.lamp.light.serialize.Serialize;
-import com.lamp.light.util.BaseUtils;
-import io.netty.handler.codec.http.HttpMethod;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import com.lamp.light.Call;
+import com.lamp.light.MultipartUpload;
+import com.lamp.light.annotation.Body;
+import com.lamp.light.annotation.Cookie;
+import com.lamp.light.annotation.DELETE;
+import com.lamp.light.annotation.Field;
+import com.lamp.light.annotation.GET;
+import com.lamp.light.annotation.HEAD;
+import com.lamp.light.annotation.Header;
+import com.lamp.light.annotation.Headers;
+import com.lamp.light.annotation.Multipart;
+import com.lamp.light.annotation.POST;
+import com.lamp.light.annotation.PUT;
+import com.lamp.light.annotation.Path;
+import com.lamp.light.annotation.Query;
+import com.lamp.light.handler.Coordinate.ParametersType;
+import com.lamp.light.response.ReturnMode;
+import com.lamp.light.serialize.FastJsonSerialize;
+import com.lamp.light.serialize.Serialize;
+import com.lamp.light.util.BaseUtils;
+
+import io.netty.handler.codec.http.HttpMethod;
+import retrofit2.http.OPTIONS;
 
 public class AnnotationAnalysis {
 
@@ -42,6 +63,7 @@ public class AnnotationAnalysis {
         DATA_ANNOTION.put(Query.class, Query.class);
         DATA_ANNOTION.put(Field.class, Field.class);
         DATA_ANNOTION.put(Body.class, Body.class);
+        DATA_ANNOTION.put(Multipart.class, Multipart.class);
 
         for (Class<?> clazz : DATA_ANNOTION.keySet()) {
             try {
@@ -66,7 +88,7 @@ public class AnnotationAnalysis {
         //  解析Header
         readHeaders(clazz, requestInfo, null);
         //  解析Method
-        readHttpMethod(clazz, requestInfo);
+        readHttpMethod(clazz, requestInfo,null);
         return requestInfo;
     }
 
@@ -74,7 +96,7 @@ public class AnnotationAnalysis {
         //  构建请求上下文
         RequestInfo requestInfo = new RequestInfo();
         readHeaders(method, requestInfo, classRequestInfo);
-        readHttpMethod(method, requestInfo);
+        readHttpMethod(method, requestInfo,classRequestInfo);
         if (Objects.isNull(requestInfo.getHttpMethod())) {
             if (Objects.isNull(classRequestInfo.getHttpMethod())) {
                 // 异常 fixme 这里的防御性检查可以放在HandleProxy的构造方法内
@@ -90,8 +112,8 @@ public class AnnotationAnalysis {
         if (Objects.nonNull(parameters) && parameters.length != 0) {
             readParameter(parameters, requestInfo);
         }
+        
         Class<?> returnType = method.getReturnType();
-
         if (Void.class.equals(returnType)) {
             // 异常
         }
@@ -141,7 +163,17 @@ public class AnnotationAnalysis {
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             Class<?> clazz = parameter.getType();
-
+            
+           if( Objects.equals(clazz, MultipartUpload.class)) {
+        	   List<Coordinate> coordinateList = clazzMap.get(Multipart.class);
+               if (Objects.isNull(coordinateList)) {
+                   coordinateList = new ArrayList<>();
+                   clazzMap.put(Multipart.class, coordinateList);
+               }
+               createCoordinate(coordinateList, null, index, null, null);
+        	   continue;
+           }
+            
             Annotation[] annotations = parameter.getAnnotations();
             if (Objects.isNull(null) || annotations.length == 0) {
                 // 通过方法识别，get 默认是query，post默认是 body或者 field
@@ -158,7 +190,14 @@ public class AnnotationAnalysis {
                     clazzMap.put(dataClazz, coordinateList);
                 }
 
+                
                 String[] values = (String[]) DATA_ANNOTION_METHOD.get(dataClazz).invoke(annotation);
+                
+                if(Objects.equals(dataClazz,Multipart.class)) {
+                	createCoordinate(coordinateList, values[0], index, type, null);
+                	continue;
+                }
+                
                 if (Objects.equals(type, ParametersType.BASIC) || Objects.equals(type, ParametersType.PACKING)
                         || Objects.equals(type, ParametersType.STRING)) {
                     if (values.length == 0 || values.length > 1) {
@@ -193,8 +232,12 @@ public class AnnotationAnalysis {
         }
         requestInfo.setHeaderList(clazzMap.get(Header.class));
         requestInfo.setPathList(clazzMap.get(Path.class));
+        if(requestInfo.getPathList() != null && requestInfo.getPathList().size() > 0) {
+        	
+        }
         requestInfo.setQueryList(clazzMap.get(Query.class));
         requestInfo.setFieldList(clazzMap.get(Field.class));
+        requestInfo.setMultipartList(clazzMap.get(Multipart.class));
     }
 
     /**
@@ -205,13 +248,14 @@ public class AnnotationAnalysis {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    private void readHttpMethod(AnnotatedElement annotatedElement, RequestInfo requestInfo)
+    private void readHttpMethod(AnnotatedElement annotatedElement, RequestInfo requestInfo,RequestInfo classRequestInfo)
             throws InstantiationException, IllegalAccessException {
         // 读取http方法
         POST post = annotatedElement.getAnnotation(POST.class);
-        if (Objects.nonNull(post)) {
-            requestInfo.setHttpMethod(HttpMethod.POST);
-            requestInfo.setUrl(post.value());
+        PUT put = annotatedElement.getAnnotation(PUT.class);
+        if (Objects.nonNull(post) || Objects.nonNull(put) ) {
+            requestInfo.setHttpMethod(Objects.isNull(HttpMethod.POST) ? HttpMethod.POST:HttpMethod.PUT);
+            requestInfo.setUrl(Objects.isNull(HttpMethod.POST) ?post.value() : put.value() );
             //  请求数据是个类对象，需要进行序列化
             Body body = annotatedElement.getAnnotation(Body.class);
             if (Objects.nonNull(body)) {
@@ -231,6 +275,34 @@ public class AnnotationAnalysis {
         if (Objects.nonNull(get)) {
             requestInfo.setHttpMethod(HttpMethod.GET);
             requestInfo.setUrl(get.value());
+            return;
+        }
+        
+        HEAD head = annotatedElement.getAnnotation(HEAD.class);
+        if (Objects.nonNull(get)) {
+            requestInfo.setHttpMethod(HttpMethod.HEAD);
+            requestInfo.setUrl(head.value());
+            return;
+        }        
+        
+        DELETE delete = annotatedElement.getAnnotation(DELETE.class);
+        if (Objects.nonNull(get)) {
+            requestInfo.setHttpMethod(HttpMethod.DELETE);
+            requestInfo.setUrl(delete.value());
+            return;
+        }        
+        
+        OPTIONS options = annotatedElement.getAnnotation(OPTIONS.class);
+        if (Objects.nonNull(get)) {
+            requestInfo.setHttpMethod(HttpMethod.OPTIONS);
+            requestInfo.setUrl(options.value());
+            return;
+        }        
+        if( annotatedElement instanceof Method) {
+        	requestInfo.setHttpMethod(classRequestInfo.getHttpMethod());
+        	requestInfo.setUrl("/"+((Method)annotatedElement).getName());
+        	requestInfo.setIsBody(classRequestInfo.getIsBody());
+        	requestInfo.setSerialize(classRequestInfo.getSerialize());
         }
 
     }

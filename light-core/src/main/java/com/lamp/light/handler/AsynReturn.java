@@ -12,7 +12,9 @@
 package com.lamp.light.handler;
 
 import com.lamp.light.Call;
+import com.lamp.light.LightContext;
 import com.lamp.light.handler.HandleProxy.HandleMethod;
+import com.lamp.light.handler.Http11Factory.ChannelWrapper;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.Serialize;
 
@@ -38,16 +40,20 @@ public class AsynReturn {
     private Call<Object> call;
 
     private ReturnMode returnMode;
+    
+    private LightContext lightContext;
+    
+    private ChannelWrapper channelWrapper;
 
     public AsynReturn() {
 
     }
 
-    public Channel getChannel() {
+    public Channel channel() {
         return channel;
     }
 
-    public void setChannel(Channel channel) {
+    public void channel(Channel channel) {
         this.channel = channel;
     }
 
@@ -55,55 +61,55 @@ public class AsynReturn {
         return args;
     }
 
-    public void setArgs(Object[] args) {
+    public void args(Object[] args) {
         this.args = args;
     }
 
-    public Serialize getSerialize() {
+    public Serialize serialize() {
         return serialize;
     }
 
-    public void setSerialize(Serialize serialize) {
+    public void serialize(Serialize serialize) {
         this.serialize = serialize;
     }
 
-    public HttpRequest getFullHttpRequest() {
+    public HttpRequest fullHttpRequest() {
         return fullHttpRequest;
     }
 
-    public void setFullHttpRequest(HttpRequest fullHttpRequest) {
+    public void fullHttpRequest(HttpRequest fullHttpRequest) {
         this.fullHttpRequest = fullHttpRequest;
     }
 
-    public Integer getRequestTimes() {
+    public Integer requestTimes() {
         return requestTimes;
     }
 
-    public void setRequestTimes(Integer requestTimes) {
+    public void requestTimes(Integer requestTimes) {
         this.requestTimes = requestTimes;
     }
 
-    public HandleMethod getHandleMethod() {
+    public HandleMethod handleMethod() {
         return handleMethod;
     }
 
-    public void setHandleMethod(HandleMethod handleMethod) {
+    public void handleMethod(HandleMethod handleMethod) {
         this.handleMethod = handleMethod;
     }
 
-    public Call<Object> getCall() {
+    public Call<Object> call() {
         return call;
     }
 
-    public void setCall(Call<Object> call) {
+    public void call(Call<Object> call) {
         this.call = call;
     }
 
-    public ReturnMode getReturnMode() {
+    public ReturnMode returnMode() {
         return returnMode;
     }
 
-    public void setReturnMode(ReturnMode returnMode) {
+    public void returnMode(ReturnMode returnMode) {
         this.returnMode = returnMode;
     }
 
@@ -115,8 +121,26 @@ public class AsynReturn {
     public synchronized Object getObject() throws InterruptedException {
         this.wait(requestTimes + 100);
         if(object instanceof Throwable) {
-            
+            throw new RuntimeException((Throwable)object);
         }
         return object;
     }
+    
+    public void lightContext(LightContext lightContext) {
+    	this.lightContext = lightContext;
+    }
+    
+    public LightContext lightContext() {
+    	return this.lightContext;
+    }
+
+	public ChannelWrapper channelWrapper() {
+		return channelWrapper;
+	}
+
+	public void channelWrapper(ChannelWrapper channelWrapper) {
+		this.channelWrapper = channelWrapper;
+	}
+    
+    
 }

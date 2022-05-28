@@ -13,8 +13,11 @@ package com.lamp.light;
 
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -22,6 +25,8 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.net.ssl.SSLException;
 
 import com.lamp.light.handler.HandleProxy;
 import com.lamp.light.netty.NettyClient;
@@ -53,9 +58,17 @@ public class Light {
 	
 	private NettyClient nettyClient;
 	
+	private boolean isTLS = false; 
+	
+	private Map<String,String> contextData = new HashMap<>();
+	
 	
 	private void init() {
-		nettyClient = new NettyClient(executor);
+		try {
+			nettyClient = new NettyClient(executor);
+		} catch (CertificateException | SSLException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -121,6 +134,8 @@ public class Light {
 		private String scheme = "http1.1";
 
 		private String host;
+		
+		private boolean isTLS = false;
 
 		private int port = 80;
 
@@ -133,6 +148,8 @@ public class Light {
 		private RouteSelect routeSelect;
 
 		private Executor executor;
+		
+		private Map<String,String> contextData;
 
 		public Builder scheme(String scheme) {
 			this.scheme = scheme;
@@ -161,6 +178,11 @@ public class Light {
 		
 		public Builder serialize(RouteSelect routeSelect) {
 			this.routeSelect = routeSelect;
+			return this;
+		}
+		
+		public Builder tls(boolean tls) {
+			this.isTLS = tls;
 			return this;
 		}
 
@@ -203,6 +225,7 @@ public class Light {
 			}
 			light.path = path;
 			light.executor = executor;
+			light.isTLS = isTLS;
 			light.init();
 			return light;
 		}

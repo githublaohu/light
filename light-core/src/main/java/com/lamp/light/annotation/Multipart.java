@@ -9,11 +9,22 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light;
+package com.lamp.light.annotation;
 
-public class LightConstant {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-	public static final String PROTOCOL_HTTP_10 = "http1.0";
+@Documented
+@Target({ ElementType.PARAMETER })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Multipart {
+
+	String value() default "";
 	
-	public static final String PROTOCOL_HTTP_11 = "http1.1";
+	String name() default "";
+	
+	String format() default "";
 }

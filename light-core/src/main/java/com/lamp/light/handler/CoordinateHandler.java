@@ -11,13 +11,19 @@
  */
 package com.lamp.light.handler;
 
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+
+import com.lamp.light.MultipartUpload;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder.ErrorDataEncoderException;
+import io.netty.handler.codec.http.multipart.MixedFileUpload;
 
 public interface CoordinateHandler<T, V> {
 
@@ -56,7 +62,7 @@ public interface CoordinateHandler<T, V> {
 			if (Objects.isNull(string)) {
 				string = "";
 			}
-			string = string +":\""+ value + "\";";
+			string = string + ":\"" + value + "\";";
 			object.add(name, string);
 		}
 	}
@@ -68,10 +74,10 @@ public interface CoordinateHandler<T, V> {
 		}
 	}
 
-	static class PathCoordinateHandler extends AbstractCoordinateHandler<String, String> {
+	static class PathCoordinateHandler extends AbstractCoordinateHandler<Map<String, String>, String> {
 		@Override
 		public void handler(String name, String value) {
-
+			this.object.put(name, value);
 		}
 	}
 
@@ -94,13 +100,39 @@ public interface CoordinateHandler<T, V> {
 	}
 
 	static class UploadCoordinateHandler extends AbstractCoordinateHandler<HttpPostRequestEncoder, Object> {
+		@SuppressWarnings("unchecked")
 		@Override
 		public void handler(String name, Object value) {
 			try {
-				object.addBodyAttribute(name, value.toString());
-			} catch (ErrorDataEncoderException e) {
+				if (value instanceof File) {
+
+				} else if (value instanceof MultipartUpload) {
+					this.addBodyHttpData((MultipartUpload) value);
+				}
+
+				if (value instanceof List) {
+					List<MultipartUpload> multipartUploadList = (List<MultipartUpload>) value;
+					for (MultipartUpload multipartUpload : multipartUploadList) {
+						this.addBodyHttpData(multipartUpload);
+					}
+				}
+
+			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
+		}
+
+		private void addBodyHttpData(MultipartUpload multipartUpload) throws Exception {
+
+			MixedFileUpload fileUpload = new MixedFileUpload(multipartUpload.name(), multipartUpload.fileName(),
+					multipartUpload.contentType(), null, multipartUpload.charset(), multipartUpload.size(),
+					1024 * 1024 * 1024);
+			if (Objects.nonNull(multipartUpload.updateFile())) {
+				fileUpload.setContent(multipartUpload.updateFile());
+			} else {
+				fileUpload.setContent(multipartUpload.uploadStream());
+			}
+			object.addBodyHttpData(fileUpload);
 		}
 	}
 
@@ -115,5 +147,8 @@ public interface CoordinateHandler<T, V> {
 		public HeaderCoordinateHandler headerCoordinateHandler = new HeaderCoordinateHandler();
 
 		public CookieCoordinateHandler cookieCoordinateHandler = new CookieCoordinateHandler();
+
+		public UploadCoordinateHandler uploadCoordinateHandler = new UploadCoordinateHandler();
+
 	}
 }

@@ -44,7 +44,7 @@ public class DefaultCall<T>  implements Call<T> {
     @Override
     public Response<T> execute() {
         nettyClient.write(asynReturn, inetSocketAddress);
-        asynReturn.setReturnMode(ReturnMode.CALL_SYNS);
+        asynReturn.returnMode(ReturnMode.CALL_SYNS);
         return null;
     }
 
@@ -52,7 +52,7 @@ public class DefaultCall<T>  implements Call<T> {
     public void execute(Callback<T> callback) {
         this.callback = callback;
         nettyClient.write(asynReturn, inetSocketAddress);
-        asynReturn.setReturnMode(ReturnMode.CALL_ASYNS);
+        asynReturn.returnMode(ReturnMode.CALL_ASYNS);
         
     }
 

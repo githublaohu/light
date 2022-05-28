@@ -11,8 +11,11 @@
  */
 package com.lamp.light.handler;
 
+import com.lamp.light.LightConstant;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.Serialize;
+import com.lamp.light.util.StringReplace;
+
 import io.netty.handler.codec.http.HttpMethod;
 
 import java.lang.reflect.Method;
@@ -24,6 +27,8 @@ import java.util.Map;
 public class RequestInfo {
 
     private String url;
+    
+    private String protocol = LightConstant.PROTOCOL_HTTP_10;
 
     private HttpMethod httpMethod;
 
@@ -42,16 +47,22 @@ public class RequestInfo {
     private List<Coordinate> queryList;
 
     private List<Coordinate> pathList;
+    
+    private StringReplace stringReplace;
 
     private List<Coordinate> fieldList;
 
     private List<Coordinate> cookieList;
+    
+    private List<Coordinate> multipartList;
 
     private int bodyIndex;
 
     private Method method;
     
     private ReturnMode returnMode;
+    
+    private boolean isTls;
 
     public String getUrl() {
         return url;
@@ -177,7 +188,39 @@ public class RequestInfo {
         this.isBody = isBody;
     }
 
-    
-    
+	public boolean isTls() {
+		return isTls;
+	}
 
+	public void setTls(boolean isTls) {
+		this.isTls = isTls;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
+
+	public List<Coordinate> getMultipartList() {
+		return multipartList;
+	}
+
+	public void setMultipartList(List<Coordinate> multipartList) {
+		this.multipartList = multipartList;
+	}
+
+	public StringReplace getStringReplace() {
+		return stringReplace;
+	}
+
+	public void setStringReplace(StringReplace stringReplace) {
+		this.stringReplace = stringReplace;
+	}    
+	
+	
+	
+    
 }
