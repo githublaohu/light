@@ -1,4 +1,4 @@
-package utils;
+package com.lamp.light.utils;
 
 import org.junit.Test;
 

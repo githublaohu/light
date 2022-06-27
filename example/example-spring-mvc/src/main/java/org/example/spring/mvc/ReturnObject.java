@@ -7,7 +7,15 @@ public class ReturnObject {
 
     private String key;
 
-    private int id;
+    private String value;
+
+    public ReturnObject() {
+    }
+
+    public ReturnObject(String key, String value) {
+        this.key = key;
+        this.value = value;
+    }
 
     public String getKey() {
         return key;
@@ -17,11 +25,19 @@ public class ReturnObject {
         this.key = key;
     }
 
-    public int getId() {
-        return id;
+    public String getValue() {
+        return value;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return "ReturnObject{" +
+                "key='" + key + '\'' +
+                ", value=" + value +
+                '}';
     }
 }

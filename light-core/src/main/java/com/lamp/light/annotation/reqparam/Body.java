@@ -9,7 +9,7 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.annotation;
+package com.lamp.light.annotation.reqparam;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -17,10 +17,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Documented
-@Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER})
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Path {
+import com.lamp.light.serialize.FastJsonSerialize;
 
-    String[] value();
+/**
+ *  传递对象参数，与ResponseBody搭配使用
+ *  可以用来提交 Json 数据或者上传文件
+ */
+@Documented
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Body {
+
+    Class<?> serialize() default FastJsonSerialize.class;
 }

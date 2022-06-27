@@ -22,7 +22,7 @@ import com.lamp.light.response.ReturnMode;
 
 public class DefaultCall<T>  implements Call<T> {
 
-    private AsynReturn asynReturn;
+    private AsyncReturn asyncReturn;
     
     private NettyClient nettyClient;
     
@@ -35,24 +35,24 @@ public class DefaultCall<T>  implements Call<T> {
     private Throwable throwable;
     
     
-    public DefaultCall(AsynReturn asynReturn, NettyClient nettyClient,InetSocketAddress inetSocketAddress ) {
-        this.asynReturn = asynReturn;
+    public DefaultCall(AsyncReturn asyncReturn, NettyClient nettyClient, InetSocketAddress inetSocketAddress ) {
+        this.asyncReturn = asyncReturn;
         this.nettyClient = nettyClient;
         this.inetSocketAddress = inetSocketAddress;
     }
 
     @Override
     public Response<T> execute() {
-        nettyClient.write(asynReturn, inetSocketAddress);
-        asynReturn.returnMode(ReturnMode.CALL_SYNS);
+        nettyClient.write(asyncReturn, inetSocketAddress);
+        asyncReturn.returnMode(ReturnMode.CALL_SYNS);
         return null;
     }
 
     @Override
     public void execute(Callback<T> callback) {
         this.callback = callback;
-        nettyClient.write(asynReturn, inetSocketAddress);
-        asynReturn.returnMode(ReturnMode.CALL_ASYNS);
+        nettyClient.write(asyncReturn, inetSocketAddress);
+        asyncReturn.returnMode(ReturnMode.CALL_ASYNS);
         
     }
 

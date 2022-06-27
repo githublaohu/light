@@ -9,7 +9,7 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.annotation;
+package com.lamp.light.annotation.reqmethod;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

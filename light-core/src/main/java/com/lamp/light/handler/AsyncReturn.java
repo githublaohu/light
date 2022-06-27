@@ -21,7 +21,7 @@ import com.lamp.light.serialize.Serialize;
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpRequest;
 
-public class AsynReturn {
+public class AsyncReturn {
 
     private Channel channel;
 
@@ -45,7 +45,7 @@ public class AsynReturn {
     
     private ChannelWrapper channelWrapper;
 
-    public AsynReturn() {
+    public AsyncReturn() {
 
     }
 

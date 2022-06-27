@@ -1,13 +1,13 @@
 package com.lamp.light.response.execute;
 
-import com.lamp.light.handler.AsynReturn;
+import com.lamp.light.handler.AsyncReturn;
 
 import io.netty.handler.codec.http.HttpResponse;
 
 public class SynsExecuteRevert extends AbstractExecuteRevert {
 
     @Override
-    public <T> T execute(HttpResponse httpResponse, AsynReturn asynReturn) {
+    public <T> T execute(HttpResponse httpResponse, AsyncReturn asyncReturn) {
         // TODO Auto-generated method stub
         return null;
     }

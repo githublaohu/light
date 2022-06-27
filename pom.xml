@@ -6,7 +6,7 @@
 	<version>${reversion}</version>
 	<packaging>pom</packaging>
 	<url>https://github.com/githublaohu/light</url>
-	<name>ligth</name>
+	<name>light</name>
 	<scm>
 		<url>git@github.com:githublaohu/light.git</url>
 		<connection>scm:git@github.com:githublaohu/light.git</connection>
@@ -36,7 +36,6 @@
 	<modules>
 		<module>light-core</module>
 		<module>example</module>
-    <module>light-spring-boot</module>
   </modules>
 	<properties>
 		<reversion>0.0.1</reversion>
