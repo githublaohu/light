@@ -9,7 +9,7 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.ligth.model;
+package com.lamp.light.model;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
@@ -34,7 +34,7 @@ public class ModelManage {
     
     public Object getModel(Type type,Throwable throwable,DefaultHttpResponse defaultHttpResponse,ByteBuf connect) throws Exception {
         Class<?> clazz = (Class<?>)type;
-        if( !LigthBaseReturnObject.class.isAssignableFrom(clazz) ) {
+        if( !LightBaseReturnObject.class.isAssignableFrom(clazz) ) {
             return null;
         }
         Constructor<?> constructor = constructorMap.get(clazz);
@@ -44,10 +44,10 @@ public class ModelManage {
             constructorMap.put(clazz, constructor);
         }
         Object object = constructor.newInstance();
-        if(object instanceof LigthBaseReturnObject) {
-            LigthBaseReturnObject ligthBaseReturnObject = (LigthBaseReturnObject)object;
-            ligthBaseReturnObject.setSuccess(false);
-            ligthBaseReturnObject.setThrowable(throwable);
+        if(object instanceof LightBaseReturnObject) {
+            LightBaseReturnObject LightBaseReturnObject = (LightBaseReturnObject)object;
+            LightBaseReturnObject.setSuccess(false);
+            LightBaseReturnObject.setThrowable(throwable);
         }
         return object;
     }

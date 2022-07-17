@@ -26,19 +26,15 @@ import java.util.Set;
 
 import com.lamp.light.Call;
 import com.lamp.light.MultipartUpload;
-import com.lamp.light.annotation.Body;
+import com.lamp.light.annotation.reqmethod.*;
+import com.lamp.light.annotation.reqparam.Body;
 import com.lamp.light.annotation.Cookie;
-import com.lamp.light.annotation.DELETE;
-import com.lamp.light.annotation.Field;
-import com.lamp.light.annotation.GET;
-import com.lamp.light.annotation.HEAD;
-import com.lamp.light.annotation.Header;
-import com.lamp.light.annotation.Headers;
+import com.lamp.light.annotation.reqparam.Field;
+import com.lamp.light.annotation.reqparam.Header;
+import com.lamp.light.annotation.reqparam.Headers;
 import com.lamp.light.annotation.Multipart;
-import com.lamp.light.annotation.POST;
-import com.lamp.light.annotation.PUT;
-import com.lamp.light.annotation.Path;
-import com.lamp.light.annotation.Query;
+import com.lamp.light.annotation.reqparam.Path;
+import com.lamp.light.annotation.reqparam.Query;
 import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.FastJsonSerialize;
@@ -254,8 +250,8 @@ public class AnnotationAnalysis {
         POST post = annotatedElement.getAnnotation(POST.class);
         PUT put = annotatedElement.getAnnotation(PUT.class);
         if (Objects.nonNull(post) || Objects.nonNull(put) ) {
-            requestInfo.setHttpMethod(Objects.isNull(HttpMethod.POST) ? HttpMethod.POST:HttpMethod.PUT);
-            requestInfo.setUrl(Objects.isNull(HttpMethod.POST) ?post.value() : put.value() );
+            requestInfo.setHttpMethod(Objects.isNull(put) ? HttpMethod.POST:HttpMethod.PUT);
+            requestInfo.setUrl(Objects.isNull(put) ?post.value() : put.value() );
             //  请求数据是个类对象，需要进行序列化
             Body body = annotatedElement.getAnnotation(Body.class);
             if (Objects.nonNull(body)) {
@@ -279,21 +275,28 @@ public class AnnotationAnalysis {
         }
         
         HEAD head = annotatedElement.getAnnotation(HEAD.class);
-        if (Objects.nonNull(get)) {
+        if (Objects.nonNull(head)) {
             requestInfo.setHttpMethod(HttpMethod.HEAD);
             requestInfo.setUrl(head.value());
             return;
-        }        
-        
+        }
+
+        PATCH patch = annotatedElement.getAnnotation(PATCH.class);
+        if (Objects.nonNull(patch)) {
+            requestInfo.setHttpMethod(HttpMethod.PATCH);
+            requestInfo.setUrl(patch.value());
+            return;
+        }
+
         DELETE delete = annotatedElement.getAnnotation(DELETE.class);
-        if (Objects.nonNull(get)) {
+        if (Objects.nonNull(delete)) {
             requestInfo.setHttpMethod(HttpMethod.DELETE);
             requestInfo.setUrl(delete.value());
             return;
         }        
         
         OPTIONS options = annotatedElement.getAnnotation(OPTIONS.class);
-        if (Objects.nonNull(get)) {
+        if (Objects.nonNull(options)) {
             requestInfo.setHttpMethod(HttpMethod.OPTIONS);
             requestInfo.setUrl(options.value());
             return;

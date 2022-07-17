@@ -7,8 +7,8 @@ import java.util.Objects;
 
 public class StringReplace {
 
-	private List<Paragraph> paragraphList = new ArrayList<>();
-	
+    private List<Paragraph> paragraphList = new ArrayList<>();
+
 
 	public StringReplace(String data) {
 		String[] stringArray  = data.split("\\{");
@@ -28,7 +28,7 @@ public class StringReplace {
 			Paragraph paragraph = new Paragraph();
 			paragraph.key = tmp[0];
 			paragraphList.add(paragraph);
-			
+
 			if(tmp.length == 2) {
 				paragraph = new Paragraph();
 				paragraph.splitString = tmp[1];
@@ -36,40 +36,40 @@ public class StringReplace {
 			}
 		}
 	}
-	
-	public String replace(Map<String,String> values) {
-		StringBuffer sb = new StringBuffer();
-		for(Paragraph paragraph: paragraphList) {
-			if(Objects.nonNull(paragraph)) {
-				sb.append(paragraph.splitString);
-			}else {
-				sb.append(values.get(paragraph.key));
-			}
-		}
-		return sb.toString();
-	}
-	
-	public String replace(List<String> values) {
-		StringBuffer sb = new StringBuffer();
-		int i = 0;
-		for(Paragraph paragraph: paragraphList) {
-			if(Objects.nonNull(paragraph)) {
-				sb.append(paragraph.splitString);
-			}else {
-				sb.append(values.get( i++));
-			}
-		}
-		return sb.toString();
-	}
-	
-	public String replaceObject(Object values) {
-		return null;
-	}
-	
-	private static class Paragraph{
-		
-		private String splitString;
-		
-		private String key;
-	}
+
+    public String replace(Map<String, String> values) {
+        StringBuffer sb = new StringBuffer();
+        for (Paragraph paragraph : paragraphList) {
+            if (Objects.nonNull(paragraph.splitString)) {
+                sb.append(paragraph.splitString);
+            } else {
+                sb.append(values.get(paragraph.key));
+            }
+        }
+        return sb.toString();
+    }
+
+    public String replace(List<String> values) {
+        StringBuffer sb = new StringBuffer();
+        int i = 0;
+        for (Paragraph paragraph : paragraphList) {
+            if (Objects.nonNull(paragraph)) {
+                sb.append(paragraph.splitString);
+            } else {
+                sb.append(values.get(i++));
+            }
+        }
+        return sb.toString();
+    }
+
+    public String replaceObject(Object values) {
+        return null;
+    }
+
+    private static class Paragraph {
+
+        private String splitString;
+
+        private String key;
+    }
 }

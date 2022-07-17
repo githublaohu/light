@@ -9,20 +9,16 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.annotation;
+package com.lamp.light.annotation.reqmethod;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lamp.light.serialize.FastJsonSerialize;
-
-@Documented
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Body {
+public @interface POST {
 
-    Class<?> serialize() default FastJsonSerialize.class;
+    String value();
 }
