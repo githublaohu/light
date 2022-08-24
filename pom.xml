@@ -8,7 +8,7 @@
 	<version>${reversion}</version>
 	<packaging>pom</packaging>
 	<url>https://github.com/githublaohu/light</url>
-	<name>ligth</name>
+	<name>light</name>
 	<scm>
 		<url>git@github.com:githublaohu/light.git</url>
 		<connection>scm:git@github.com:githublaohu/light.git</connection>
@@ -42,8 +42,8 @@
 	</modules>
 	<properties>
 		<reversion>0.0.1</reversion>
-		<netty.version>4.1.29.Final</netty.version>
-		<fastjson.version>1.2.61</fastjson.version>
+		<netty.version>4.1.71.Final</netty.version>
+		<fastjson.version>1.2.83</fastjson.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>

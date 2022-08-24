@@ -9,7 +9,7 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.annotation;
+package com.lamp.light.api.http.annotation.parameter;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -17,14 +17,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Documented
-@Target({ ElementType.PARAMETER })
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Multipart {
+import com.lamp.light.api.serialize.FastJsonSerialize;
 
-	String value() default "";
-	
-	String name() default "";
-	
-	String format() default "";
+@Documented
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Body {
+
+    Class<?> serialize() default FastJsonSerialize.class;
 }

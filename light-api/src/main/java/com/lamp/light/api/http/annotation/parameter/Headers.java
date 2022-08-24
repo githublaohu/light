@@ -9,7 +9,7 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.api.http.annotation;
+package com.lamp.light.api.http.annotation.parameter;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -18,9 +18,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Target({ElementType.METHOD, ElementType.TYPE, ElementType.PARAMETER})
+@Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Path {
+public @interface Headers {
 
     String[] value();
 }

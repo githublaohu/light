@@ -23,13 +23,13 @@ import javax.net.ssl.SSLException;
 import com.lamp.light.Callback;
 import com.lamp.light.LightConstant;
 import com.lamp.light.LightContext;
-import com.lamp.light.handler.AsynReturn;
+import com.lamp.light.handler.AsyncReturn;
 import com.lamp.light.handler.DefaultCall;
 import com.lamp.light.handler.Http11Factory;
 import com.lamp.light.handler.Http11Factory.ChannelWrapper;
 import com.lamp.light.response.Response;
 import com.lamp.light.response.ReturnMode;
-import com.lamp.ligth.model.ModelManage;
+import com.lamp.light.model.ModelManage;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
@@ -72,7 +72,7 @@ public class NettyClient {
 
 	private static final InternalLogger logger = InternalLoggerFactory.getInstance(NettyClient.class);
 	
-	private Map<ChannelId, AsynReturn> channelIdToAsynReturn = new ConcurrentHashMap<>();
+	private Map<ChannelId, AsyncReturn> channelIdToAsynReturn = new ConcurrentHashMap<>();
 
 	private EventLoopGroup workerGroup = new NioEventLoopGroup();
 
@@ -138,9 +138,9 @@ public class NettyClient {
 		});
 	}
 
-	private Bootstrap getBootstrap(AsynReturn asynReturn) {
+	private Bootstrap getBootstrap(AsyncReturn asyncReturn) {
 		try {
-			if(asynReturn.handleMethod().getRequestInfo().isTls()) {
+			if(asyncReturn.handleMethod().getRequestInfo().isTls()) {
 				if(Objects.isNull(tlsBootstrap)) {
 					this.createTLSBootstrap();
 				}
@@ -153,74 +153,74 @@ public class NettyClient {
 		}
 	}
 	
-	public Channel getChannle(AsynReturn asynReturn,InetSocketAddress inetSocketAddress) throws InterruptedException {
-		return this.getBootstrap(asynReturn).connect(inetSocketAddress).sync().channel();
+	public Channel getChannle(AsyncReturn asyncReturn, InetSocketAddress inetSocketAddress) throws InterruptedException {
+		return this.getBootstrap(asyncReturn).connect(inetSocketAddress).sync().channel();
 	}
 
-	public void write(AsynReturn asynReturn, InetSocketAddress inetSocketAddress) {
-		if(asynReturn.handleMethod().getRequestInfo().getProtocol().equals(LightConstant.PROTOCOL_HTTP_11)) {
-			ChannelWrapper channelWrapper = Http11Factory.getInstance().getChannelWrapper(asynReturn.handleMethod().isSecurity(), inetSocketAddress);
+	public void write(AsyncReturn asyncReturn, InetSocketAddress inetSocketAddress) {
+		if(asyncReturn.handleMethod().getRequestInfo().getProtocol().equals(LightConstant.PROTOCOL_HTTP_11)) {
+			ChannelWrapper channelWrapper = Http11Factory.getInstance().getChannelWrapper(asyncReturn.handleMethod().isSecurity(), inetSocketAddress);
 			if(Objects.nonNull(channelWrapper)) {
 				
-				channelWrapper.getChannel().writeAndFlush(asynReturn.fullHttpRequest()).addListener(new ChannelFutureListener() {
+				channelWrapper.getChannel().writeAndFlush(asyncReturn.fullHttpRequest()).addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future) throws Exception {
 						if (future.isSuccess()) {
-							channelIdToAsynReturn.put(future.channel().id(), asynReturn);
-							asynReturn.channelWrapper(channelWrapper);
+							channelIdToAsynReturn.put(future.channel().id(), asyncReturn);
+							asyncReturn.channelWrapper(channelWrapper);
 						} else {
-							error(asynReturn, future.cause());
+							error(asyncReturn, future.cause());
 						}
 					}
 				});
 				return;
 			}
 		}
-		this.getBootstrap(asynReturn).connect(inetSocketAddress).addListener(new ChannelFutureListener() {
+		this.getBootstrap(asyncReturn).connect(inetSocketAddress).addListener(new ChannelFutureListener() {
 			@Override
 			public void operationComplete(ChannelFuture future) throws Exception {
 				if (future.isSuccess()) {
-					channelIdToAsynReturn.put(future.channel().id(), asynReturn);
-					future.channel().writeAndFlush(asynReturn.fullHttpRequest());
-					if(asynReturn.handleMethod().getRequestInfo().getProtocol().equals(LightConstant.PROTOCOL_HTTP_11)) {
+					channelIdToAsynReturn.put(future.channel().id(), asyncReturn);
+					future.channel().writeAndFlush(asyncReturn.fullHttpRequest());
+					if(asyncReturn.handleMethod().getRequestInfo().getProtocol().equals(LightConstant.PROTOCOL_HTTP_11)) {
 						ChannelWrapper channelWrapper = new ChannelWrapper();
 						channelWrapper.setChannel(future.channel());
 						channelWrapper.setAddress(inetSocketAddress);
-						channelWrapper.setSecurity(asynReturn.handleMethod().getRequestInfo().isTls());
-						channelWrapper.setTimeout(asynReturn.handleMethod().getRequestTimes());
-						asynReturn.channelWrapper(channelWrapper);
+						channelWrapper.setSecurity(asyncReturn.handleMethod().getRequestInfo().isTls());
+						channelWrapper.setTimeout(asyncReturn.handleMethod().getRequestTimes());
+						asyncReturn.channelWrapper(channelWrapper);
 					}
 				} else {
-					error(asynReturn, future.cause());
+					error(asyncReturn, future.cause());
 				}
 			}
 		});
 		
     }
 
-	public void error(AsynReturn asynReturn, Throwable throwable) {
-		if (asynReturn.returnMode().equals(ReturnMode.SYNS)) {
+	public void error(AsyncReturn asyncReturn, Throwable throwable) {
+		if (asyncReturn.returnMode().equals(ReturnMode.SYNS)) {
 			try {
 				Object object = ModelManage.getInstance().getModel(
-						asynReturn.handleMethod().getRequestInfo().getReturnClazz(), throwable, null, null);
+						asyncReturn.handleMethod().getRequestInfo().getReturnClazz(), throwable, null, null);
 				if (Objects.nonNull(object)) {
-					asynReturn.setObject(object);
+					asyncReturn.setObject(object);
 					return;
 				}
-				asynReturn.setObject(throwable);
+				asyncReturn.setObject(throwable);
 				return;
 			} catch (Exception e) {
-				asynReturn.setObject(e);
+				asyncReturn.setObject(e);
 				return;
 			}
-		}else if (asynReturn.returnMode().equals(ReturnMode.CALL)) {
-			DefaultCall<Object> call = (DefaultCall<Object>) asynReturn.call();
+		}else if (asyncReturn.returnMode().equals(ReturnMode.CALL)) {
+			DefaultCall<Object> call = (DefaultCall<Object>) asyncReturn.call();
 			call.setThrowable(throwable);
 			if (Objects.isNull(call.getCallback())) {
 				Callback<Object> callback = call.getCallback();
-				callback.onFailure(call, asynReturn.getArgs(), throwable);
+				callback.onFailure(call, asyncReturn.getArgs(), throwable);
 			} else {
-				asynReturn.setObject(call);
+				asyncReturn.setObject(call);
 			}
 		}
 	}
@@ -231,13 +231,13 @@ public class NettyClient {
 
 		private ByteBuf connect;
 
-		private AsynReturn asynReturn;
+		private AsyncReturn asyncReturn;
 
 		private Throwable throwable;
 
 		@Override
 		public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
-			asynReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
+			asyncReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
 		}
 
 		@Override
@@ -273,41 +273,41 @@ public class NettyClient {
 		}
 
 		private void returnHandle(ChannelHandlerContext ctx) {
-			asynReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
-			ChannelWrapper channelWrapper = asynReturn.channelWrapper();
+			asyncReturn = NettyClient.this.channelIdToAsynReturn.remove(ctx.pipeline().channel().id());
+			ChannelWrapper channelWrapper = asyncReturn.channelWrapper();
 			if(Objects.isNull(channelWrapper)) {
 				ctx.close();
 			}else {
 				Http11Factory.getInstance().setChannelWrapper(channelWrapper);
 			}
-			if(Objects.nonNull(asynReturn.lightContext())) {
-				LightContext.lightContext(asynReturn.lightContext());
+			if(Objects.nonNull(asyncReturn.lightContext())) {
+				LightContext.lightContext(asyncReturn.lightContext());
 			}
-			if (asynReturn.returnMode().equals(ReturnMode.SYNS)) {
+			if (asyncReturn.returnMode().equals(ReturnMode.SYNS)) {
 				if (Objects.nonNull(throwable)
 						|| !Objects.equals(defaultHttpResponse.status(), HttpResponseStatus.OK)) {
 					try {
 						Object object = ModelManage.getInstance().getModel(
-								asynReturn.handleMethod().getRequestInfo().getReturnClazz(), throwable,
+								asyncReturn.handleMethod().getRequestInfo().getReturnClazz(), throwable,
 								defaultHttpResponse, connect);
 						if (Objects.nonNull(object)) {
-							asynReturn.setObject(object);
+							asyncReturn.setObject(object);
 							return;
 						}
-						asynReturn.setObject(throwable);
+						asyncReturn.setObject(throwable);
 						return;
 					} catch (Exception e) {
-						asynReturn.setObject(e);
+						asyncReturn.setObject(e);
 						return;
 					}
 				}
-				Object object = asynReturn.serialize().deserialization(
-						asynReturn.handleMethod().getRequestInfo().getReturnClazz(), connect.array());
-				asynReturn.setObject(object);
+				Object object = asyncReturn.serialize().deserialization(
+						asyncReturn.handleMethod().getRequestInfo().getReturnClazz(), connect.array());
+				asyncReturn.setObject(object);
 				return;
 			}
-			if (asynReturn.returnMode().equals(ReturnMode.CALL)) {
-				DefaultCall<Object> call = (DefaultCall<Object>) asynReturn.call();
+			if (asyncReturn.returnMode().equals(ReturnMode.CALL)) {
+				DefaultCall<Object> call = (DefaultCall<Object>) asyncReturn.call();
 				Response<Object> response = new Response<>(defaultHttpResponse);
 				call.setResponse(response);
 				call.setThrowable(throwable);
@@ -318,26 +318,26 @@ public class NettyClient {
 						public void run() {
 							if (Objects.isNull(throwable)) {
 								// 这里应该是异步
-								Object object = asynReturn.serialize().deserialization(asynReturn.getClass(),
+								Object object = asyncReturn.serialize().deserialization(asyncReturn.getClass(),
 										connect.array());
-								callback.onResponse(call, asynReturn.getArgs(), object);
+								callback.onResponse(call, asyncReturn.getArgs(), object);
 							} else {
-								callback.onFailure(call, asynReturn.getArgs(), throwable);
+								callback.onFailure(call, asyncReturn.getArgs(), throwable);
 							}
 						}
 					});
 					
 				} else {
-					asynReturn.setObject(call);
+					asyncReturn.setObject(call);
 				}
 			}
-			if(asynReturn.returnMode().equals(ReturnMode.ASYSN)) {
+			if(asyncReturn.returnMode().equals(ReturnMode.ASYSN)) {
 				executor.execute(new Runnable() {
 					@Override
 					public void run() {
 						try {
-							LightContext.lightContext(asynReturn.lightContext());
-							asynReturn.handleMethod().getMethod().invoke(asynReturn.handleMethod().getSuccess(), asynReturn.getArgs());
+							LightContext.lightContext(asyncReturn.lightContext());
+							asyncReturn.handleMethod().getMethod().invoke(asyncReturn.handleMethod().getSuccess(), asyncReturn.getArgs());
 						}catch(Exception e) {
 							logger.error(e.getMessage(), e);
 						}
@@ -350,8 +350,8 @@ public class NettyClient {
 		@Override
 		public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
 			if (IdleState.READER_IDLE.equals(evt)) {
-				AsynReturn asynReturn = NettyClient.this.channelIdToAsynReturn.get(ctx.pipeline().channel().id());
-				NettyClient.this.error(asynReturn, new RuntimeException("request timeout"));
+				AsyncReturn asyncReturn = NettyClient.this.channelIdToAsynReturn.get(ctx.pipeline().channel().id());
+				NettyClient.this.error(asyncReturn, new RuntimeException("request timeout"));
 			}
 			ctx.close();
 		}
@@ -367,9 +367,9 @@ public class NettyClient {
 
 		private IdleStateHandler getIdleStateHandler(ChannelHandlerContext ctx) throws Exception {
 			if (Objects.isNull(idleStateHandler)) {
-				AsynReturn asynReturn = NettyClient.this.channelIdToAsynReturn.get(ctx.pipeline().channel().id());
+				AsyncReturn asyncReturn = NettyClient.this.channelIdToAsynReturn.get(ctx.pipeline().channel().id());
 				// 得到时间 asynReturn.getRequestTimes()
-				idleStateHandler = new IdleStateHandler(asynReturn.requestTimes(), -1, -1);
+				idleStateHandler = new IdleStateHandler(asyncReturn.requestTimes(), -1, -1);
 				idleStateHandler.handlerAdded(ctx);
 			}
 			return idleStateHandler;

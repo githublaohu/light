@@ -1,82 +1,66 @@
 package com.lamp.light;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import java.util.List;
-
+import org.junit.Assert;
 import org.junit.Test;
-
 import com.lamp.light.Light.Builder;
-import com.lamp.light.api.http.annotation.method.GET;
-import com.sun.net.httpserver.HttpServer;
 
 
-@SuppressWarnings("restriction")
 public class LightTest {
 
-	ReturnObject returnObject = new ReturnObject();
+    ReturnObject returnObject = new ReturnObject("key", "value");
+    TestInterface i;
 
-	//@Before
-	public void init() {
-		// 启动http服务
-		Thread thread = new Thread(new Runnable() {
-			@Override
-			public void run() {
-				HttpServer server;
-				try {
-					// 监听8080端口，同时受理 0个请求
-					server = HttpServer.create(new InetSocketAddress(8000), 0);
-					// 声明 path 和对应的处理逻辑
-					server.createContext("/testInterface/testObject", exchange -> {
-						// 写死处理http请求的逻辑
-						InputStream requestBody = exchange.getRequestBody();
-						byte[] bytes = new byte[requestBody.available()];
-						requestBody.read(bytes);
-						String str = new String(bytes);
-						System.out.println(str);
-					});
-					server.start();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		});
-		thread.start();
-		returnObject.setId(123);
-		returnObject.setKey("key");
-	}
+    {
+        Builder builder = Light.Builder();
+        Light light = builder.host("127.0.0.1").port(8080).build();
+        try {
+            i = light.create(TestInterface.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	@Test
-	public void test() throws Exception {
-		// 构建light
-		Builder builder = Light.Builder();
-		Light light = builder.host("127.0.0.1").port(8080).build();
-		TestInterface testInterface = light.create(TestInterface.class);
-		ReturnObject newReturnObject = testInterface.testObject(returnObject);
-		System.out.println(newReturnObject);
-	}
+    @Test
+    public void testBody() {
+        ReturnObject res = i.testBody(returnObject);
+        Assert.assertEquals(new ReturnObject("testBody", "value").toString(), res.toString());
+    }
 
-	@Test
-	public void testHead() throws Exception {
-		Builder builder = Light.Builder();
-		Light light = builder.host("127.0.0.1").port(8080).path("/light").build();
-		TestInterface testInterface = light.create(TestInterface.class);
-		testInterface.testHead(returnObject, "cccc");
-	}
+    @Test
+    public void testField() {
+        //配合表单测试
+    }
 
-	@Test
-	public void testData() throws Exception {
-		Builder builder = Light.Builder();
-		Light light = builder.host("127.0.0.1").port(8000).path("/light").build();
-		TestInterface testInterface = light.create(TestInterface.class);
-		testInterface.testData(returnObject);
-	}
+    @Test
+    public void testHeader() {
+        ReturnObject res = i.testHeader(returnObject, "testHeader");
+        Assert.assertEquals(new ReturnObject("key", "testHeader").toString(), res.toString());
+    }
 
-	interface cedded {
+    @Test
+    public void testHeaders() {
+        Assert.assertEquals(new ReturnObject("createKey", "testHeaders").toString(),i.testHeaders().toString());
+    }
 
-		@GET("/dede")
-		public Call<List<String>> getsdde();
-	}
+    @Test
+    public void testPath() {
+        ReturnObject res = i.testPath(returnObject, "testPath");
+        Assert.assertEquals(new ReturnObject("key", "testPath").toString(), res.toString());
+    }
+
+    @Test
+    public void testQuery() {
+        Assert.assertEquals(new ReturnObject("key", "testQuery2").toString(), i.testQuery(new ReturnObject("key", "testQuery"),"testQuery2").toString());
+    }
+
+
+    @Test
+    public void testReqMethod() {
+        Assert.assertEquals(new ReturnObject("createKey", "deleteTest").toString(), i.testDelete().toString());
+        Assert.assertEquals(new ReturnObject("createKey", "getTest").toString(), i.testGet().toString());
+        Assert.assertEquals(new ReturnObject("createKey", "headTest").toString(), i.testHead().toString());
+        Assert.assertEquals(new ReturnObject("createKey", "patchTest").toString(), i.testPatch().toString());
+        Assert.assertEquals(new ReturnObject("createKey", "postTest").toString(), i.testPost().toString());
+        Assert.assertEquals(new ReturnObject("createKey", "putTest").toString(), i.testPut().toString());
+    }
 }

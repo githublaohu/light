@@ -23,7 +23,7 @@
 		<dependency>
 			<groupId>io.github.githublaohu</groupId>
 			<artifactId>dubbo-springmvc</artifactId>
-			<version>0.0.6</version>
+			<version>0.0.10</version>
 			<type>pom</type>
 			<exclusions>
 				<exclusion>
@@ -38,6 +38,12 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.springframework.boot</groupId>-->
+<!--			<artifactId>spring-boot-starter</artifactId>-->
+<!--			<version>2.6.7</version>-->
+<!--		</dependency>-->
+
 	</dependencies>
 	<build>
 		<plugins>

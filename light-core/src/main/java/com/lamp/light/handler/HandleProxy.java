@@ -154,7 +154,7 @@ public class HandleProxy implements InvocationHandler {
 				defaultFullHttpRequest = interceptor.handlerRequest(requestInfo, defaultFullHttpRequest);
 			}
 		}
-		AsynReturn asynReturn = new AsynReturn();
+		AsyncReturn asynReturn = new AsyncReturn();
 		asynReturn.returnMode(handleMethod.returnMode);
 		asynReturn.fullHttpRequest(defaultFullHttpRequest);
 		asynReturn.handleMethod(handleMethod);

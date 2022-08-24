@@ -9,16 +9,29 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.annotation;
+package com.lamp.light.api.http.annotation.parameter;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.METHOD, ElementType.TYPE})
+/**
+ * 
+ * @author laohu
+ *
+ */
+@Documented
+@Target({ElementType.TYPE , ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface POST {
+public @interface Scope {
 
-    String value();
+	String name();
+	
+	Class<?>[] clazz() default {};
+	
+	String[] clazzName() default {};
+	
+	String[] packageName() default {};
 }

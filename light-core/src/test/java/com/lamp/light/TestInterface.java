@@ -1,31 +1,66 @@
 package com.lamp.light;
 
-import com.lamp.light.annotation.*;
+
+import com.lamp.light.api.http.annotation.method.DELETE;
+import com.lamp.light.api.http.annotation.method.GET;
+import com.lamp.light.api.http.annotation.method.PATCH;
+import com.lamp.light.api.http.annotation.method.POST;
+import com.lamp.light.api.http.annotation.method.PUT;
+import com.lamp.light.api.http.annotation.parameter.Body;
+import com.lamp.light.api.http.annotation.parameter.Field;
+import com.lamp.light.api.http.annotation.parameter.Header;
+import com.lamp.light.api.http.annotation.parameter.Headers;
+import com.lamp.light.api.http.annotation.parameter.Path;
+import com.lamp.light.api.http.annotation.parameter.Query;
 
 @POST("/testInterface")
 public interface TestInterface {
 
-    @Headers({"Connet-Type:laohu"})
-    @POST("/testHead}")
-    ReturnObject testHead(@Header({"key", "id"}) ReturnObject returnObject, @Header("cccc") String cccc);
-
-    @Headers({"Connet-Type:laohu"})
-    @POST("/testCall}")
-    Call<ReturnObject> testCall(@Header({"key", "id"}) ReturnObject returnObject, @Header("cccc") String cccc);
-
-    @POST("/testHead}")
-    ReturnObject testQuery(@Query({"key", "id"}) ReturnObject returnObject, @Query("query") String query);
-
-    @POST("/testObject/{key}/{id}/{path}")
-    ReturnObject testPath(@Path({"key", "id"}) ReturnObject returnObject, @Path("path") String path);
-
     @Body
-    @POST("/testObject")
-    ReturnObject testObject(ReturnObject returnObject);
+    @POST("/testBody")
+    ReturnObject testBody(ReturnObject returnObject);
+
+    @POST("/testHeader")
+    ReturnObject testHeader(@Header({"key", "value"}) ReturnObject returnObject, @Header("testStr") String testStr);
+
+    @Headers({"testHeader:testHeaders"})
+    @POST("/testHeaders")
+    ReturnObject testHeaders();
+
+    @POST("/testPath/{key}/{value}/{path}")
+    ReturnObject testPath(@Path({"key","value"}) ReturnObject returnObject,@Path("path") String path);
+
+    @GET("/testQuery")
+    ReturnObject testQuery(@Query({"key","value"}) ReturnObject returnObject,@Query("path") String path);
+
+
+
+    //reqMethod
+    @DELETE("/deleteTest")
+    ReturnObject testDelete();
+
+    @GET("/getTest")
+    ReturnObject testGet();
+
+    @GET("/headTest")
+    ReturnObject testHead();
+
+    @PATCH("/patchTest")
+    ReturnObject testPatch();
+
+    @POST("/postTest")
+    ReturnObject testPost();
+
+    @PUT("/putTest")
+    ReturnObject testPut();
+
+
+
+
 
     @Headers({"Connet-Type:laohu"})
     @POST("/testObject")
-    ReturnObject testData(@Field({"key", "id"}) @Path({"key", "id"}) @Query({"key", "id"}) @Header({"key", "id"}) ReturnObject returnObject);
+    ReturnObject testData(@Field({"key", "value"}) @Path({"key", "value"}) @Query({"key", "value"}) @Header({"key", "value"}) ReturnObject returnObject);
 
 
 }
