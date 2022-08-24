@@ -235,11 +235,12 @@ public class HandleProxy implements InvocationHandler {
 		//ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
 		defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
 				queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
-		if (Objects.nonNull(requestInfo.getFieldList())) {
+		if (Objects.nonNull(requestInfo.getFieldList()) || Objects.nonNull(requestInfo.getMultipartList())) {
 			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
-			coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
-			coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
-			
+			if(Objects.nonNull(requestInfo.getFieldList())) {
+				coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
+				coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
+			}
 			if(Objects.nonNull(requestInfo.getMultipartList())) {
 				coordinateHandlerWrapper.uploadCoordinateHandler.setObject(httpPostRequestEncoder);
 				coordinateHandler(args, requestInfo.getMultipartList(), coordinateHandlerWrapper.uploadCoordinateHandler);

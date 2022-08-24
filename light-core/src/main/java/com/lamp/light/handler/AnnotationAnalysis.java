@@ -39,6 +39,7 @@ import com.lamp.light.annotation.POST;
 import com.lamp.light.annotation.PUT;
 import com.lamp.light.annotation.Path;
 import com.lamp.light.annotation.Query;
+import com.lamp.light.api.http.annotation.method.OPTIONS;
 import com.lamp.light.handler.Coordinate.ParametersType;
 import com.lamp.light.response.ReturnMode;
 import com.lamp.light.serialize.FastJsonSerialize;
@@ -46,7 +47,6 @@ import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
 
 import io.netty.handler.codec.http.HttpMethod;
-import retrofit2.http.OPTIONS;
 
 public class AnnotationAnalysis {
 

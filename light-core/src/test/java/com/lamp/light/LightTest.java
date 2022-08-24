@@ -8,11 +8,9 @@ import java.util.List;
 import org.junit.Test;
 
 import com.lamp.light.Light.Builder;
+import com.lamp.light.api.http.annotation.method.GET;
 import com.sun.net.httpserver.HttpServer;
 
-import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.http.GET;
 
 @SuppressWarnings("restriction")
 public class LightTest {
@@ -74,14 +72,6 @@ public class LightTest {
 		Light light = builder.host("127.0.0.1").port(8000).path("/light").build();
 		TestInterface testInterface = light.create(TestInterface.class);
 		testInterface.testData(returnObject);
-	}
-
-	@Test
-	public void ttetet() {
-		Retrofit retrofit = new Retrofit.Builder().baseUrl("http://127.0.0.1:8080").build();
-
-		cedded cedded = retrofit.create(cedded.class);
-		cedded.getsdde();
 	}
 
 	interface cedded {
