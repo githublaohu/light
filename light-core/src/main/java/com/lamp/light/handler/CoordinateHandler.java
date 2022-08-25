@@ -12,11 +12,15 @@
 package com.lamp.light.handler;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.lamp.light.MultipartUpload;
+import com.lamp.light.api.http.annotation.parameter.Multipart;
+import com.lamp.light.api.multipart.MultipartUpload;
+import com.lamp.light.api.multipart.MultipartUpload.MultipartUploadBuilder;
+import com.lamp.light.api.request.Coordinate;
 
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpHeaders;
@@ -39,6 +43,8 @@ public interface CoordinateHandler<T, V> {
 	}
 
 	void handler(String key, V value);
+	
+	public void setCoordinate(Coordinate coordinate);
 
 	void clean();
 
@@ -46,12 +52,21 @@ public interface CoordinateHandler<T, V> {
 
 		T object;
 
+		Coordinate coordinate;
+		
 		void setObject(T object) {
 			this.object = object;
 		}
+		
+		public void setCoordinate(Coordinate coordinate) {
+			this.coordinate = coordinate;
+		}
+
+
 
 		public void clean() {
 			this.object = null;
+			this.coordinate = null;
 		}
 	}
 
@@ -100,31 +115,54 @@ public interface CoordinateHandler<T, V> {
 	}
 
 	static class UploadCoordinateHandler extends AbstractCoordinateHandler<HttpPostRequestEncoder, Object> {
-		@SuppressWarnings("unchecked")
+
+		@SuppressWarnings({ "unchecked" })
 		@Override
 		public void handler(String name, Object value) {
 			try {
-				if (value instanceof File) {
-
-				} else if (value instanceof MultipartUpload) {
-					this.addBodyHttpData((MultipartUpload) value);
-				}
-
-				if (value instanceof List) {
-					List<MultipartUpload> multipartUploadList = (List<MultipartUpload>) value;
-					for (MultipartUpload multipartUpload : multipartUploadList) {
-						this.addBodyHttpData(multipartUpload);
+				
+				if(value instanceof List) {
+					for(Object object : (List<Object>)value) {
+						this.single(name, object);
 					}
+				}else {
+					this.single(name, value);
 				}
 
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
+		
+		
+		private void single(String name, Object value) throws Exception {
+			MultipartUpload multipartUpload = null;
+			MultipartUploadBuilder multipartUploadBuilder = MultipartUpload.Builder();
+			if (value instanceof File) {
+				multipartUploadBuilder.updateFile((File)value) ;
+			} else if (value instanceof String) {
+				multipartUploadBuilder.uploadString((String)value);
+			} else if (value instanceof byte[]) {
+				multipartUploadBuilder.uploadByte((byte[])value);
+			} else if (value instanceof InputStream) {
+				multipartUploadBuilder.uploadStream((InputStream)value);
+			}else if (value instanceof MultipartUpload) {
+				multipartUpload = (MultipartUpload)value;
+			}
+			
+			if(Objects.isNull(multipartUpload)) {
+				Multipart multipart = (Multipart)this.coordinate.getAnnotation();
+				multipartUploadBuilder.fileName(multipart.name());
+				multipartUploadBuilder.contentType(multipart.format());
+				multipartUpload = multipartUploadBuilder.build();
+			}
+			
+			this.addBodyHttpData( multipartUpload);
+		}
 
 		private void addBodyHttpData(MultipartUpload multipartUpload) throws Exception {
 
-			MixedFileUpload fileUpload = new MixedFileUpload(multipartUpload.name(), multipartUpload.fileName(),
+			MixedFileUpload fileUpload = new MixedFileUpload(multipartUpload.fileName(), multipartUpload.fileName(),
 					multipartUpload.contentType(), null, multipartUpload.charset(), multipartUpload.size(),
 					1024 * 1024 * 1024);
 			if (Objects.nonNull(multipartUpload.updateFile())) {

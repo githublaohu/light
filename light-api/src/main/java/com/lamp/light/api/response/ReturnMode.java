@@ -9,22 +9,9 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.api.serialize;
+package com.lamp.light.api.response;
 
-import java.lang.reflect.Type;
-
-import com.alibaba.fastjson.JSON;
-
-public class FastJsonSerialize implements Serialize{
-
-    @Override
-    public byte[] serialize(Object object) {
-        return JSON.toJSONBytes(object);
-    }
-
-    @Override
-    public <T> T deserialization(Type t , byte[] data) {
-        return JSON.parseObject(data, t);
-    }
-
+public enum ReturnMode {
+    
+    SYNS,CALL,CALL_SYNS,CALL_ASYNS,ASYSN;
 }

@@ -24,8 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.lamp.light.Call;
-import com.lamp.light.MultipartUpload;
+import com.lamp.light.api.call.Call;
 import com.lamp.light.api.http.annotation.method.DELETE;
 import com.lamp.light.api.http.annotation.method.GET;
 import com.lamp.light.api.http.annotation.method.HEAD;
@@ -41,10 +40,13 @@ import com.lamp.light.api.http.annotation.parameter.Headers;
 import com.lamp.light.api.http.annotation.parameter.Multipart;
 import com.lamp.light.api.http.annotation.parameter.Path;
 import com.lamp.light.api.http.annotation.parameter.Query;
-import com.lamp.light.handler.Coordinate.ParametersType;
-import com.lamp.light.response.ReturnMode;
+import com.lamp.light.api.multipart.MultipartUpload;
+import com.lamp.light.api.request.Coordinate;
+import com.lamp.light.api.request.RequestInfo;
+import com.lamp.light.api.request.Coordinate.ParametersType;
+import com.lamp.light.api.response.ReturnMode;
+import com.lamp.light.api.serialize.Serialize;
 import com.lamp.light.serialize.FastJsonSerialize;
-import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
 
 import io.netty.handler.codec.http.HttpMethod;
@@ -93,9 +95,10 @@ public class AnnotationAnalysis {
         return requestInfo;
     }
 
-    public RequestInfo analysis(Method method, RequestInfo classRequestInfo) throws Exception {
+    public RequestInfo analysis(Object proxy,Method method, RequestInfo classRequestInfo) throws Exception {
         //  构建请求上下文
         RequestInfo requestInfo = new RequestInfo();
+        requestInfo.setProxy(proxy);
         readHeaders(method, requestInfo, classRequestInfo);
         readHttpMethod(method, requestInfo,classRequestInfo);
         if (Objects.isNull(requestInfo.getHttpMethod())) {
@@ -171,7 +174,7 @@ public class AnnotationAnalysis {
                    coordinateList = new ArrayList<>();
                    clazzMap.put(Multipart.class, coordinateList);
                }
-               createCoordinate(coordinateList, null, index, null, null);
+               createCoordinate(coordinateList, null, index, null, null,null);
         	   continue;
            }
             
@@ -191,40 +194,39 @@ public class AnnotationAnalysis {
                     clazzMap.put(dataClazz, coordinateList);
                 }
 
-                
-                String[] values = (String[]) DATA_ANNOTION_METHOD.get(dataClazz).invoke(annotation);
-                
                 if(Objects.equals(dataClazz,Multipart.class)) {
-                	createCoordinate(coordinateList, values[0], index, type, null);
+                	createCoordinate(coordinateList, null, index, type, null,annotation);
                 	continue;
                 }
+                
+                String[] values = (String[]) DATA_ANNOTION_METHOD.get(dataClazz).invoke(annotation);
                 
                 if (Objects.equals(type, ParametersType.BASIC) || Objects.equals(type, ParametersType.PACKING)
                         || Objects.equals(type, ParametersType.STRING)) {
                     if (values.length == 0 || values.length > 1) {
                         // 异常
                     }
-                    createCoordinate(coordinateList, values[0], index, type, null);
+                    createCoordinate(coordinateList, values[0], index, type, null,annotation);
                     continue;
                 }
 
                 if (Objects.equals(type, ParametersType.MAP)) {
                     if (values.length == 0) {
-                        createCoordinate(coordinateList, null, index, type, null);
+                        createCoordinate(coordinateList, null, index, type, null,annotation);
                     } else {
                         for (String value : values) {
-                            createCoordinate(coordinateList, value, index, type, null);
+                            createCoordinate(coordinateList, value, index, type, null,annotation);
                         }
                     }
                     continue;
                 }
                 if (Objects.equals(type, ParametersType.OBJECT)) {
                     if (values.length == 0) {
-                        getCoordinateByClass(clazz, index, type, coordinateList);
+                        getCoordinateByClass(clazz, index, type, coordinateList,annotation);
                     } else {
                         for (String value : values) {
                             createCoordinate(coordinateList, value, index, ParametersType.OBJECT,
-                                    getMethod(value, clazz));
+                                    getMethod(value, clazz),annotation);
                         }
                     }
                 }
@@ -263,7 +265,7 @@ public class AnnotationAnalysis {
                 requestInfo.setIsBody(true);
                 Class<?> serializeClass = body.serialize();
                 Serialize serialize;
-                if (serializeClass.equals(FastJsonSerialize.class)) {
+                if (serializeClass.equals(Serialize.class)) {
                     serialize = new FastJsonSerialize();
                 } else {
                     serialize = (Serialize) body.getClass().newInstance();
@@ -316,25 +318,26 @@ public class AnnotationAnalysis {
     }
 
     private static void getCoordinateByClass(Class<?> clazz, int index, ParametersType type,
-                                             List<Coordinate> coordinateList) {
+                                             List<Coordinate> coordinateList,Annotation annotation) {
 
         java.lang.reflect.Field[] fields = clazz.getFields();
         for (java.lang.reflect.Field field : fields) {
             String fieldName = field.getName();
             Method method = getMethod(fieldName, clazz);
             if (Objects.isNull(method)) {
-                createCoordinate(coordinateList, fieldName, index, type, method);
+                createCoordinate(coordinateList, fieldName, index, type, method,annotation);
             }
         }
     }
 
     private static Boolean createCoordinate(List<Coordinate> coordinateList, String key, int index, ParametersType type,
-                                            Method method) {
+                                            Method method,Annotation annotation) {
         Coordinate coordinate = new Coordinate();
         coordinate.setIndex(index);
         coordinate.setType(type);
         coordinate.setKey(key);
         coordinate.setMethod(method);
+        coordinate.setAnnotation(annotation);
         coordinateList.add(coordinate);
         return true;
     }

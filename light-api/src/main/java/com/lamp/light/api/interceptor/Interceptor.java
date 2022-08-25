@@ -11,26 +11,28 @@
  */
 package com.lamp.light.api.interceptor;
 
-import java.lang.reflect.Method;
-
-import org.omg.PortableInterceptor.RequestInfo;
+import com.lamp.light.api.request.RequestWrapper;
 
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 
 public interface Interceptor {
 
-    public default Object[] handlerBefore(Object proxy, Method method , RequestInfo requestInfo , Object[] args) {
+    public default Object[] handlerBefore( RequestWrapper requestWrapper , Object[] args) {
     	return args;
     }
     
-    public default HttpRequest handlerRequest( RequestInfo requestInfo,HttpRequest defaultFullHttpRequest) {
+    public default HttpRequest handlerRequest( RequestWrapper requestWrapper,HttpRequest defaultFullHttpRequest) {
     	return defaultFullHttpRequest;
+    }
+    
+    public default void handlerErrer(Throwable throwable,  RequestWrapper requestWrapper , Object[] args) {
+    	
     }
     
     public default void handlerResponse(HttpResponse defaultHttpResponse) { }
     
-    public default void handlerAfter(RequestInfo requestInfo,HttpResponse defaultHttpResponse) {
+    public default void handlerAfter(RequestWrapper requestWrapper,HttpResponse defaultHttpResponse) {
     	
     }
 }

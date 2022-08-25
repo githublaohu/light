@@ -9,13 +9,13 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.serialize;
+package com.lamp.light.api.response;
 
-import java.lang.reflect.Type;
+import io.netty.handler.codec.http.HttpResponse;
 
-public interface Serialize {
+public class Response<T> {
 
-    public byte[] serialize(Object object);
     
-    public <T> T deserialization(Type t, byte[] data);
+    public Response(HttpResponse httpResponse) {
+    }
 }

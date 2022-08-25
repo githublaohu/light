@@ -9,8 +9,9 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.handler;
+package com.lamp.light.api.request;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 public class Coordinate {
@@ -22,6 +23,8 @@ public class Coordinate {
     private Method method;
 
     private ParametersType type;
+    
+    private Annotation annotation;
 
     public int getIndex() {
         return index;
@@ -54,8 +57,18 @@ public class Coordinate {
     public void setType(ParametersType type) {
         this.type = type;
     }
+    
+    public Annotation getAnnotation() {
+		return annotation;
+	}
 
-    public enum ParametersType {
+	public void setAnnotation(Annotation annotation) {
+		this.annotation = annotation;
+	}
+
+
+
+	public enum ParametersType {
 
         BASIC, PACKING, STRING, MAP, LIST, LIST_MAP, LIST_OBJECT, OBJECT, UPLOAD,UPLOAD_LIST,UPLOAD_MAP,;
     }

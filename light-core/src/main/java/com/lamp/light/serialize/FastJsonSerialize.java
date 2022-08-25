@@ -14,6 +14,7 @@ package com.lamp.light.serialize;
 import java.lang.reflect.Type;
 
 import com.alibaba.fastjson.JSON;
+import com.lamp.light.api.serialize.Serialize;
 
 public class FastJsonSerialize implements Serialize{
 

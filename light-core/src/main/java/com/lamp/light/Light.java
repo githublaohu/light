@@ -28,12 +28,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.SSLException;
 
-import com.lamp.light.handler.HandleProxy;
+import com.lamp.light.api.interceptor.Interceptor;
+import com.lamp.light.api.route.RouteSelect;
+import com.lamp.light.api.serialize.Serialize;
+import com.lamp.light.handler.HandlerProxy;
 import com.lamp.light.netty.NettyClient;
 import com.lamp.light.route.DefaultRouteSelect;
-import com.lamp.light.route.RouteSelect;
 import com.lamp.light.serialize.FastJsonSerialize;
-import com.lamp.light.serialize.Serialize;
 
 /**
  *  
@@ -118,9 +119,10 @@ public class Light {
 	 */
 	private Object getObject(Class<?> clazz, Object success, Object fail) throws Exception {
 		// 创建执行逻辑代理类
-		HandleProxy handleProxy =
+		HandlerProxy handleProxy =
 				// 真实执行
-				new HandleProxy(nettyClient,path, clazz, routeSelect, interceptorList, serialize, success, fail);
+				new HandlerProxy(nettyClient,path, clazz, routeSelect, interceptorList, serialize, success, fail);
+		handleProxy.setTSL(this.isTLS);
 		// 为当前 clazz 返回
 		return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz }, handleProxy);
 	}
@@ -176,7 +178,7 @@ public class Light {
 			return this;
 		}
 		
-		public Builder serialize(RouteSelect routeSelect) {
+		public Builder routeSelect(RouteSelect routeSelect) {
 			this.routeSelect = routeSelect;
 			return this;
 		}
@@ -219,7 +221,7 @@ public class Light {
 
 							@Override
 							public Thread newThread(Runnable r) {
-								return new Thread("ligth-asyn-" + atomicInteger.incrementAndGet());
+								return new Thread(r,"ligth-asyn-" + atomicInteger.incrementAndGet());
 							}
 						});
 			}

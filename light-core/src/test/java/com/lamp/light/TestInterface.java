@@ -34,8 +34,6 @@ public interface TestInterface {
     ReturnObject testQuery(@Query({"key","value"}) ReturnObject returnObject,@Query("path") String path);
 
 
-
-    //reqMethod
     @DELETE("/deleteTest")
     ReturnObject testDelete();
 
@@ -53,10 +51,6 @@ public interface TestInterface {
 
     @PUT("/putTest")
     ReturnObject testPut();
-
-
-
-
 
     @Headers({"Connet-Type:laohu"})
     @POST("/testObject")

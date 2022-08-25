@@ -9,9 +9,10 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.response;
+package com.lamp.light.api.route;
 
-public enum ReturnMode {
-    
-    SYNS,CALL,CALL_SYNS,CALL_ASYNS,ASYSN;
+
+public interface RouteSelect {
+	
+	public LampInstance select(Object[] args, Class<?> clazz);
 }

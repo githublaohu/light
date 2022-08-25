@@ -13,11 +13,11 @@ package com.lamp.light.handler;
 
 import java.net.InetSocketAddress;
 
-import com.lamp.light.Call;
-import com.lamp.light.Callback;
+import com.lamp.light.api.call.Call;
+import com.lamp.light.api.call.Callback;
+import com.lamp.light.api.response.Response;
+import com.lamp.light.api.response.ReturnMode;
 import com.lamp.light.netty.NettyClient;
-import com.lamp.light.response.Response;
-import com.lamp.light.response.ReturnMode;
 
 
 public class DefaultCall<T>  implements Call<T> {
@@ -33,6 +33,8 @@ public class DefaultCall<T>  implements Call<T> {
     private InetSocketAddress inetSocketAddress;
     
     private Throwable throwable;
+    
+    private T object;
     
     
     public DefaultCall(AsyncReturn asyncReturn, NettyClient nettyClient, InetSocketAddress inetSocketAddress ) {
@@ -50,9 +52,8 @@ public class DefaultCall<T>  implements Call<T> {
 
     @Override
     public void execute(Callback<T> callback) {
+    	asyncReturn.returnMode(ReturnMode.CALL_ASYNS);
         this.callback = callback;
-        nettyClient.write(asyncReturn, inetSocketAddress);
-        asyncReturn.returnMode(ReturnMode.CALL_ASYNS);
         
     }
 
@@ -103,6 +104,13 @@ public class DefaultCall<T>  implements Call<T> {
         return throwable == null;
     }
 
-    
+    public void setObject(T object) {
+    	this.object = object;
+    }
+
+	@Override
+	public T getObject() {
+		return this.object;
+	}
     
 }

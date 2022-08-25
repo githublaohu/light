@@ -9,13 +9,13 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.response;
+package com.lamp.light.api.call;
 
-import io.netty.handler.codec.http.HttpResponse;
+public interface Callback<T> extends Runnable{
 
-public class Response<T> {
+	public default void run() {}
+	
+    public void onResponse(Call<T> call, Object[] args, T returnData);
 
-    
-    public Response(HttpResponse httpResponse) {
-    }
+    public void onFailure(Call<T> call, Object[] args, Throwable t);
 }

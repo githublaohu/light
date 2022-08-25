@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import com.lamp.light.ReturnObject;
 import com.lamp.light.TestInterface;
+import com.lamp.light.api.request.RequestInfo;
 
 public class AnnotationAnalysisTest {
 
@@ -25,30 +26,30 @@ public class AnnotationAnalysisTest {
     @Test
     public void testCall() throws Exception {
        Method method = clazz.getMethod("testCall", new Class[]{ReturnObject.class,String.class});
-       annotationAnalysis.analysis(method,   requestInfo);
+       annotationAnalysis.analysis(clazz,method,   requestInfo);
     }
     
     @Test
     public void testHead() throws Exception {
        Method method = clazz.getMethod("testHead", new Class[]{ReturnObject.class,String.class});
-       annotationAnalysis.analysis(method,   requestInfo);
+       annotationAnalysis.analysis(clazz,method,   requestInfo);
     }
     
     @Test
     public void testQuery() throws Exception {
        Method method = clazz.getMethod("testQuery", new Class[]{ReturnObject.class,String.class});
-       annotationAnalysis.analysis(method,   requestInfo);
+       annotationAnalysis.analysis(clazz,method,   requestInfo);
     }
     
     @Test
     public void testPath() throws Exception {
        Method method = clazz.getMethod("testPath", new Class[]{ReturnObject.class,String.class});
-       annotationAnalysis.analysis(method,   requestInfo);
+       annotationAnalysis.analysis(clazz,method,   requestInfo);
     }
     
     @Test
     public void testObject() throws Exception {
        Method method = clazz.getMethod("testObject", new Class[]{ReturnObject.class,String.class});
-       annotationAnalysis.analysis(method,   requestInfo);
+       annotationAnalysis.analysis(clazz,method,   requestInfo);
     }
 }

@@ -9,9 +9,9 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light;
+package com.lamp.light.api.call;
 
-import com.lamp.light.response.Response;
+import com.lamp.light.api.response.Response;
 
 public interface Call<T> {
 
@@ -30,4 +30,6 @@ public interface Call<T> {
     void cancel();
 
     boolean isCanceled();
+    
+    public T getObject();
 }

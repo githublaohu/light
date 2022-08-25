@@ -1,4 +1,4 @@
-package com.lamp.light;
+package com.lamp.light.api.multipart;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -7,8 +7,6 @@ import java.nio.charset.Charset;
 import java.util.Objects;
 
 public class MultipartUpload {
-	
-	private String name;
 
 	private String fileName;
 	
@@ -21,10 +19,6 @@ public class MultipartUpload {
 	private InputStream uploadStream;
 	
 	private File updateFile;
-	
-	public String name() {
-		return this.name;
-	}
 	
 	public String fileName() {
 		return this.fileName;
@@ -115,7 +109,7 @@ public class MultipartUpload {
 		public MultipartUpload build() {
 			MultipartUpload multipartUpload = new MultipartUpload();
 			
-			if(Objects.isNull(uploadUrl)) {
+			if(Objects.nonNull(uploadUrl)) {
 				updateFile = new File(uploadUrl);
 			}
 			if(Objects.nonNull(this.updateFile) ) {

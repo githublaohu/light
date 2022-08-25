@@ -13,6 +13,9 @@ package com.lamp.light.route;
 
 import java.util.List;
 
+import com.lamp.light.api.route.LampInstance;
+import com.lamp.light.api.route.RouteSelect;
+
 public interface BroadcastRouteSelect extends RouteSelect {
 
 	public List<LampInstance> selects(Object[] args, Class<?> clazz);

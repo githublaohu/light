@@ -14,7 +14,7 @@ package com.lamp.light;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.lamp.light.response.Response;
+import com.lamp.light.api.response.Response;
 
 public class LightContext {
 

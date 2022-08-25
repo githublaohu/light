@@ -9,20 +9,20 @@
  *MERCHANTABILITY OR FIT FOR A PARTICULAR PURPOSE.
  *See the Mulan PubL v2 for more details.
  */
-package com.lamp.light.handler;
-
-import com.lamp.light.LightConstant;
-import com.lamp.light.response.ReturnMode;
-import com.lamp.light.serialize.Serialize;
-import com.lamp.light.util.StringReplace;
-
-import io.netty.handler.codec.http.HttpMethod;
+package com.lamp.light.api.request;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.lamp.light.api.LightConstant;
+import com.lamp.light.api.response.ReturnMode;
+import com.lamp.light.api.serialize.Serialize;
+import com.lamp.light.api.utils.StringReplace;
+
+import io.netty.handler.codec.http.HttpMethod;
 
 public class RequestInfo {
 
@@ -63,7 +63,15 @@ public class RequestInfo {
     private ReturnMode returnMode;
     
     private boolean isTls;
+    
+    private Object proxy;
+    
+    private RequestWrapper requestWrapper = new RequestWrapper(this);
 
+    public RequestWrapper requestWrapper() {
+    	return requestWrapper;
+    }
+    
     public String getUrl() {
         return url;
     }
@@ -218,9 +226,14 @@ public class RequestInfo {
 
 	public void setStringReplace(StringReplace stringReplace) {
 		this.stringReplace = stringReplace;
+	}
+
+	public Object getProxy() {
+		return proxy;
+	}
+
+	public void setProxy(Object proxy) {
+		this.proxy = proxy;
 	}    
 	
-	
-	
-    
 }

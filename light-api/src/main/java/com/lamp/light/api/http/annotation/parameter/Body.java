@@ -17,12 +17,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lamp.light.api.serialize.FastJsonSerialize;
+import com.lamp.light.api.serialize.Serialize;
 
 @Documented
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Body {
 
-    Class<?> serialize() default FastJsonSerialize.class;
+    Class<?> serialize() default Serialize.class;
 }

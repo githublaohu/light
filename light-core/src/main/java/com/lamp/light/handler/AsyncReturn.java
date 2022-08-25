@@ -11,12 +11,15 @@
  */
 package com.lamp.light.handler;
 
-import com.lamp.light.Call;
+import java.util.List;
+
 import com.lamp.light.LightContext;
-import com.lamp.light.handler.HandleProxy.HandleMethod;
+import com.lamp.light.api.call.Call;
+import com.lamp.light.api.interceptor.Interceptor;
+import com.lamp.light.api.response.ReturnMode;
+import com.lamp.light.api.serialize.Serialize;
+import com.lamp.light.handler.HandlerProxy.HandleMethod;
 import com.lamp.light.handler.Http11Factory.ChannelWrapper;
-import com.lamp.light.response.ReturnMode;
-import com.lamp.light.serialize.Serialize;
 
 import io.netty.channel.Channel;
 import io.netty.handler.codec.http.HttpRequest;
@@ -33,7 +36,7 @@ public class AsyncReturn {
 
     private HttpRequest fullHttpRequest;
 
-    private Integer requestTimes = 30000;
+    private Integer requestTimes = 1;
 
     private HandleMethod handleMethod;
 
@@ -44,6 +47,8 @@ public class AsyncReturn {
     private LightContext lightContext;
     
     private ChannelWrapper channelWrapper;
+    
+    private List<Interceptor> interceptorList;
 
     public AsyncReturn() {
 
@@ -142,5 +147,11 @@ public class AsyncReturn {
 		this.channelWrapper = channelWrapper;
 	}
     
+    public void  interceptorList (List<Interceptor> interceptorList) {
+    	this.interceptorList = interceptorList;
+    }
     
+    public List<Interceptor>  interceptorList () {
+    	return this.interceptorList;
+    }
 }

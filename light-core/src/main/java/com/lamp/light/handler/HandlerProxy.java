@@ -24,20 +24,23 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.lamp.light.Interceptor;
-import com.lamp.light.LightConstant;
 import com.lamp.light.LightContext;
-import com.lamp.light.handler.Coordinate.ParametersType;
+import com.lamp.light.api.LightConstant;
+import com.lamp.light.api.http.annotation.parameter.Multipart;
+import com.lamp.light.api.interceptor.Interceptor;
+import com.lamp.light.api.request.Coordinate;
+import com.lamp.light.api.request.RequestInfo;
+import com.lamp.light.api.request.Coordinate.ParametersType;
+import com.lamp.light.api.response.ReturnMode;
+import com.lamp.light.api.route.LampInstance;
+import com.lamp.light.api.route.RouteSelect;
+import com.lamp.light.api.serialize.Serialize;
+import com.lamp.light.api.utils.StringReplace;
 import com.lamp.light.handler.CoordinateHandler.CoordinateHandlerWrapper;
 import com.lamp.light.netty.NettyClient;
-import com.lamp.light.response.ReturnMode;
 import com.lamp.light.route.BroadcastRouteSelect;
 import com.lamp.light.route.DefaultRouteSelect;
-import com.lamp.light.route.LampInstance;
-import com.lamp.light.route.RouteSelect;
-import com.lamp.light.serialize.Serialize;
 import com.lamp.light.util.BaseUtils;
-import com.lamp.light.util.StringReplace;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -53,7 +56,7 @@ import io.netty.handler.codec.http.QueryStringEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder;
 import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder.ErrorDataEncoderException;
 
-public class HandleProxy implements InvocationHandler {
+public class HandlerProxy implements InvocationHandler {
 
 	private AnnotationAnalysis annotationAnalysis = new AnnotationAnalysis();
 
@@ -77,8 +80,10 @@ public class HandleProxy implements InvocationHandler {
 	private Object success;
 
 	private Object fail;
+	
+	private boolean TLS; 
 
-	public HandleProxy(NettyClient nettyClient, String path, Class<?> proxy, RouteSelect routeSelect,
+	public HandlerProxy(NettyClient nettyClient, String path, Class<?> proxy, RouteSelect routeSelect,
 			List<Interceptor> interceptorList, Serialize serialize, Object success, Object fail) throws Exception {
 		this.nettyClient = nettyClient;
 		if (Objects.isNull(success) || Objects.isNull(fail)) {
@@ -101,6 +106,10 @@ public class HandleProxy implements InvocationHandler {
 			this.socketAddress = socketAddress.substring(1, socketAddress.length());
 		}
 	}
+	
+	public void setTSL(boolean tsl) {
+		this.TLS = tsl;
+	}
 
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -111,7 +120,7 @@ public class HandleProxy implements InvocationHandler {
 		HandleMethod handleMethod = handleMethodMap.get(method);
 		if (Objects.isNull(handleMethod)) {
 			handleMethod = new HandleMethod();
-			handleMethod.requestInfo = annotationAnalysis.analysis(method, this.requestInfo);
+			handleMethod.requestInfo = annotationAnalysis.analysis(proxy,method, this.requestInfo);
 			if(Objects.nonNull(requestInfo.getPathList())) {
 				requestInfo.setStringReplace(new StringReplace(requestInfo.getUrl()));
 			}
@@ -119,39 +128,37 @@ public class HandleProxy implements InvocationHandler {
 				handleMethod.success = success;
 				handleMethod.fail = fail;
 				handleMethod.returnMode = ReturnMode.ASYSN;
-			} else {
-				handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
-			}
+				handleMethod.method = method;
+				handleMethod.requestInfo.setTls(this.TLS);
+			} 
+			handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
 			handleMethodMap.put(method, handleMethod);
 		}
-		if(routeSelect instanceof RouteSelect) {
-			LampInstance lampInstance = routeSelect.select(args, this.proxy);
-			InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
-			return this.execute(inetSocketAddress, handleMethod, method, args);
-		}else {
-			if(routeSelect instanceof BroadcastRouteSelect) {
-				List<Object> resultList = new ArrayList<>();
-				List<LampInstance> lampInstanceList = ((BroadcastRouteSelect)routeSelect).selects(args, this.proxy);
-				for(LampInstance instance : lampInstanceList) {
-					Object object = this.execute(instance.getInetSocketAddress(), handleMethod, method, args);
-					resultList.add(object);
-				}
+		if(routeSelect instanceof BroadcastRouteSelect){
+			List<Object> resultList = new ArrayList<>();
+			List<LampInstance> lampInstanceList = ((BroadcastRouteSelect)routeSelect).selects(args, this.proxy);
+			for(LampInstance instance : lampInstanceList) {
+				Object object = this.execute(instance.getInetSocketAddress(), handleMethod, method, args);
+				resultList.add(object);
 			}
-			return null;
+			return (Object)resultList;
 		}
+		LampInstance lampInstance = routeSelect.select(args, this.proxy);
+		InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
+		return this.execute(inetSocketAddress, handleMethod, method, args);
 	}
 	
 	private Object execute(InetSocketAddress inetSocketAddress , HandleMethod handleMethod,Method method, Object[] args)  throws Throwable{
 		RequestInfo requestInfo = handleMethod.requestInfo;
 		if (Objects.nonNull(interceptorList)) {
 			for (Interceptor interceptor : interceptorList) {
-				args = interceptor.handlerBefore(proxy, method, requestInfo, args);
+				args = interceptor.handlerBefore(requestInfo.requestWrapper(), args);
 			}
 		}
 		HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod,inetSocketAddress);
 		if (Objects.nonNull(interceptorList)) {
 			for (Interceptor interceptor : interceptorList) {
-				defaultFullHttpRequest = interceptor.handlerRequest(requestInfo, defaultFullHttpRequest);
+				defaultFullHttpRequest = interceptor.handlerRequest(requestInfo.requestWrapper(), defaultFullHttpRequest);
 			}
 		}
 		AsyncReturn asynReturn = new AsyncReturn();
@@ -159,6 +166,7 @@ public class HandleProxy implements InvocationHandler {
 		asynReturn.fullHttpRequest(defaultFullHttpRequest);
 		asynReturn.handleMethod(handleMethod);
 		asynReturn.serialize(serialize);
+		asynReturn.interceptorList(interceptorList);
 		
 		if(Objects.nonNull(this.success)) {
 			asynReturn.returnMode(ReturnMode.ASYSN);
@@ -236,7 +244,7 @@ public class HandleProxy implements InvocationHandler {
 		defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
 				queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
 		if (Objects.nonNull(requestInfo.getFieldList()) || Objects.nonNull(requestInfo.getMultipartList())) {
-			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
+			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, Objects.nonNull(requestInfo.getMultipartList()));
 			if(Objects.nonNull(requestInfo.getFieldList())) {
 				coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
 				coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
@@ -264,6 +272,7 @@ public class HandleProxy implements InvocationHandler {
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
 		// 要支持form的list
 		for (Coordinate coordinate : coordinateList) {
+			coordinateHandler.setCoordinate(coordinate);
 			Object object = args[coordinate.getIndex()];
 			if (Objects.equals(coordinate.getType(), ParametersType.BASIC)
 					|| Objects.equals(coordinate.getType(), ParametersType.PACKING)) {
@@ -281,8 +290,13 @@ public class HandleProxy implements InvocationHandler {
 							TypeToString.ObjectToString(map.get(coordinate.getKey())));
 				}
 			} else if (Objects.equals(coordinate.getType(), ParametersType.OBJECT)) {
-				coordinateHandler.handler(coordinate.getKey(),
+				System.out.println(coordinate.getAnnotation().annotationType());
+				if(coordinate.getAnnotation().annotationType().equals(Multipart.class)) {
+					coordinateHandler.handler(null, object);
+				}else {
+					coordinateHandler.handler(coordinate.getKey(),
 						TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
+				}
 			}
 		}
 		coordinateHandler.clean();
