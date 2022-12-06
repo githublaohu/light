@@ -36,6 +36,7 @@ import com.lamp.light.api.route.LampInstance;
 import com.lamp.light.api.route.RouteSelect;
 import com.lamp.light.api.serialize.Serialize;
 import com.lamp.light.api.utils.StringReplace;
+import com.lamp.light.cloud.implement.SimpleCloudImplementObject;
 import com.lamp.light.handler.CoordinateHandler.CoordinateHandlerWrapper;
 import com.lamp.light.netty.NettyClient;
 import com.lamp.light.route.BroadcastRouteSelect;
@@ -80,8 +81,8 @@ public class HandlerProxy implements InvocationHandler {
 	private Object success;
 
 	private Object fail;
-	
-	private boolean TLS; 
+
+	private boolean TLS;
 
 	public HandlerProxy(NettyClient nettyClient, String path, Class<?> proxy, RouteSelect routeSelect,
 			List<Interceptor> interceptorList, Serialize serialize, Object success, Object fail) throws Exception {
@@ -106,7 +107,7 @@ public class HandlerProxy implements InvocationHandler {
 			this.socketAddress = socketAddress.substring(1, socketAddress.length());
 		}
 	}
-	
+
 	public void setTSL(boolean tsl) {
 		this.TLS = tsl;
 	}
@@ -120,8 +121,8 @@ public class HandlerProxy implements InvocationHandler {
 		HandleMethod handleMethod = handleMethodMap.get(method);
 		if (Objects.isNull(handleMethod)) {
 			handleMethod = new HandleMethod();
-			handleMethod.requestInfo = annotationAnalysis.analysis(proxy,method, this.requestInfo);
-			if(Objects.nonNull(requestInfo.getPathList())) {
+			handleMethod.requestInfo = annotationAnalysis.analysis(proxy, method, this.requestInfo);
+			if (Objects.nonNull(requestInfo.getPathList())) {
 				requestInfo.setStringReplace(new StringReplace(requestInfo.getUrl()));
 			}
 			if (Objects.nonNull(success)) {
@@ -130,35 +131,37 @@ public class HandlerProxy implements InvocationHandler {
 				handleMethod.returnMode = ReturnMode.ASYSN;
 				handleMethod.method = method;
 				handleMethod.requestInfo.setTls(this.TLS);
-			} 
+			}
 			handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
 			handleMethodMap.put(method, handleMethod);
 		}
-		if(routeSelect instanceof BroadcastRouteSelect){
+		if (routeSelect instanceof BroadcastRouteSelect) {
 			List<Object> resultList = new ArrayList<>();
-			List<LampInstance> lampInstanceList = ((BroadcastRouteSelect)routeSelect).selects(args, this.proxy);
-			for(LampInstance instance : lampInstanceList) {
+			List<LampInstance> lampInstanceList = ((BroadcastRouteSelect) routeSelect).selects(args, this.proxy);
+			for (LampInstance instance : lampInstanceList) {
 				Object object = this.execute(instance.getInetSocketAddress(), handleMethod, method, args);
 				resultList.add(object);
 			}
-			return (Object)resultList;
+			return (Object) resultList;
 		}
 		LampInstance lampInstance = routeSelect.select(args, this.proxy);
 		InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
 		return this.execute(inetSocketAddress, handleMethod, method, args);
 	}
-	
-	private Object execute(InetSocketAddress inetSocketAddress , HandleMethod handleMethod,Method method, Object[] args)  throws Throwable{
+
+	private Object execute(InetSocketAddress inetSocketAddress, HandleMethod handleMethod, Method method, Object[] args)
+			throws Throwable {
 		RequestInfo requestInfo = handleMethod.requestInfo;
 		if (Objects.nonNull(interceptorList)) {
 			for (Interceptor interceptor : interceptorList) {
 				args = interceptor.handlerBefore(requestInfo.requestWrapper(), args);
 			}
 		}
-		HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod,inetSocketAddress);
+		HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod, inetSocketAddress);
 		if (Objects.nonNull(interceptorList)) {
 			for (Interceptor interceptor : interceptorList) {
-				defaultFullHttpRequest = interceptor.handlerRequest(requestInfo.requestWrapper(), defaultFullHttpRequest);
+				defaultFullHttpRequest = interceptor.handlerRequest(requestInfo.requestWrapper(),
+						defaultFullHttpRequest);
 			}
 		}
 		AsyncReturn asynReturn = new AsyncReturn();
@@ -167,14 +170,14 @@ public class HandlerProxy implements InvocationHandler {
 		asynReturn.handleMethod(handleMethod);
 		asynReturn.serialize(serialize);
 		asynReturn.interceptorList(interceptorList);
-		
-		if(Objects.nonNull(this.success)) {
+
+		if (Objects.nonNull(this.success)) {
 			asynReturn.returnMode(ReturnMode.ASYSN);
 			asynReturn.lightContext(LightContext.lightContext());
 			asynReturn.args(args);
 			LightContext.remove();
 		}
-		
+
 		nettyClient.write(asynReturn, inetSocketAddress);
 		Object object = null;
 		if (handleMethod.returnMode == ReturnMode.SYNS) {
@@ -186,14 +189,19 @@ public class HandlerProxy implements InvocationHandler {
 		return object;
 	}
 
-	public HttpRequest getHttpRequest(Object[] args, HandleMethod handleMethod,InetSocketAddress inetSocketAddress) throws IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException, ErrorDataEncoderException {
+	public HttpRequest getHttpRequest(Object[] args, HandleMethod handleMethod, InetSocketAddress inetSocketAddress)
+			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+			ErrorDataEncoderException {
+		if (Objects.equals(SimpleCloudImplementObject.class, args[0])) {
+			return createHttpRequest((SimpleCloudImplementObject)args[0]);
+		}
+		
 		CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
 		RequestInfo requestInfo = handleMethod.requestInfo;
 		String url = requestInfo.getUrl();
 		// path
 		if (Objects.nonNull(requestInfo.getPathList())) {
-			Map<String,String>  pathMap = new HashMap<>();
+			Map<String, String> pathMap = new HashMap<>();
 			coordinateHandlerWrapper.pathCoordinateHandler.setObject(pathMap);
 			coordinateHandler(args, requestInfo.getPathList(), coordinateHandlerWrapper.pathCoordinateHandler);
 			url = handleMethod.requestInfo.getStringReplace().replace(pathMap);
@@ -221,48 +229,86 @@ public class HandlerProxy implements InvocationHandler {
 		}
 
 		// HttpPostRequestEncoder 用于post请求
-		HttpRequest defaultFullHttpRequest;
 		ByteBuf buffer = Unpooled.EMPTY_BUFFER;
-		if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod()) || Objects.equals(HttpMethod.PUT, handleMethod.requestInfo.getHttpMethod())) {
+		if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod())
+				|| Objects.equals(HttpMethod.PUT, handleMethod.requestInfo.getHttpMethod())) {
 			if (requestInfo.getIsBody()) {
 				// body 协议 httpHeaders
 				byte[] bytes = serialize.serialize(args[requestInfo.getBodyIndex()]);
 				buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
 				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
 				httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
-			}else {
+			} else {
 				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
 			}
 		}
-		
-		if(LightConstant.PROTOCOL_HTTP_11.equals(handleMethod.getRequestInfo().getProtocol())) {
+
+		if (LightConstant.PROTOCOL_HTTP_11.equals(handleMethod.getRequestInfo().getProtocol())) {
 			httpHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
 		}
-		
+
 		httpHeaders.set(HttpHeaderNames.HOST, this.getHttpHeaderByHost(inetSocketAddress));
-		//ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
-		defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, requestInfo.getHttpMethod(),
-				queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
+		// ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
+		HttpRequest defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
+				requestInfo.getHttpMethod(), queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
 		if (Objects.nonNull(requestInfo.getFieldList()) || Objects.nonNull(requestInfo.getMultipartList())) {
-			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, Objects.nonNull(requestInfo.getMultipartList()));
-			if(Objects.nonNull(requestInfo.getFieldList())) {
+			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest,
+					Objects.nonNull(requestInfo.getMultipartList()));
+			if (Objects.nonNull(requestInfo.getFieldList())) {
 				coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
 				coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
 			}
-			if(Objects.nonNull(requestInfo.getMultipartList())) {
+			if (Objects.nonNull(requestInfo.getMultipartList())) {
 				coordinateHandlerWrapper.uploadCoordinateHandler.setObject(httpPostRequestEncoder);
-				coordinateHandler(args, requestInfo.getMultipartList(), coordinateHandlerWrapper.uploadCoordinateHandler);
+				coordinateHandler(args, requestInfo.getMultipartList(),
+						coordinateHandlerWrapper.uploadCoordinateHandler);
 			}
 			defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
 		}
 		return defaultFullHttpRequest;
 	}
-	
+
+	private HttpRequest createHttpRequest(SimpleCloudImplementObject simpleCloudImplementObject)
+			throws ErrorDataEncoderException {
+		QueryStringEncoder queryStringEncoder = new QueryStringEncoder(simpleCloudImplementObject.getPath());
+		if (Objects.nonNull(simpleCloudImplementObject.getQuerys())) {
+			for (Entry<String, String> entry : simpleCloudImplementObject.getQuerys().entrySet()) {
+				queryStringEncoder.addParam(entry.getKey(), entry.getValue());
+			}
+		}
+		HttpHeaders httpHeaders = new DefaultHttpHeaders();
+		if (Objects.nonNull(simpleCloudImplementObject.getHeader())) {
+			for (Entry<String, String> entry : simpleCloudImplementObject.getHeader().entrySet()) {
+				httpHeaders.add(entry.getKey(), entry.getValue());
+			}
+		}
+		ByteBuf buffer = Unpooled.EMPTY_BUFFER;
+		if (Objects.equals(HttpMethod.POST.toString(), simpleCloudImplementObject.getHttpMethod())
+				|| Objects.equals(HttpMethod.PUT.toString(), simpleCloudImplementObject.getHttpMethod())) {
+			if (simpleCloudImplementObject.isJson()) {
+				// body 协议 httpHeaders
+				byte[] bytes = serialize.serialize(simpleCloudImplementObject.getBody());
+				buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
+				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+				httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
+			} else {
+				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
+			}
+		}
+		HttpRequest defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
+				HttpMethod.valueOf(simpleCloudImplementObject.getHttpMethod()), queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
+		if (Objects.nonNull(simpleCloudImplementObject.getForm())) {
+			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
+			defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
+		}
+		return defaultFullHttpRequest;
+	}
+
 	private String getHttpHeaderByHost(InetSocketAddress inetSocketAddress) {
-		if(Objects.isNull(this.socketAddress)) {
+		if (Objects.isNull(this.socketAddress)) {
 			String socketAddress = inetSocketAddress.toString();
 			return socketAddress.substring(1, socketAddress.length());
-		}else {
+		} else {
 			return this.socketAddress;
 		}
 	}
@@ -291,11 +337,11 @@ public class HandlerProxy implements InvocationHandler {
 				}
 			} else if (Objects.equals(coordinate.getType(), ParametersType.OBJECT)) {
 				System.out.println(coordinate.getAnnotation().annotationType());
-				if(coordinate.getAnnotation().annotationType().equals(Multipart.class)) {
+				if (coordinate.getAnnotation().annotationType().equals(Multipart.class)) {
 					coordinateHandler.handler(null, object);
-				}else {
+				} else {
 					coordinateHandler.handler(coordinate.getKey(),
-						TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
+							TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
 				}
 			}
 		}
@@ -316,11 +362,9 @@ public class HandlerProxy implements InvocationHandler {
 		private Object fail;
 
 		private ReturnMode returnMode;
-		
+
 		private boolean isSecurity = false;
 
-		
-		
 		public RequestInfo getRequestInfo() {
 			return requestInfo;
 		}
@@ -384,6 +428,6 @@ public class HandlerProxy implements InvocationHandler {
 		public void setSecurity(boolean isSecurity) {
 			this.isSecurity = isSecurity;
 		}
-		
+
 	}
 }

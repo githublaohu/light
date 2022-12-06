@@ -7,8 +7,7 @@
 	<parent>
 		<groupId>cn.lampup</groupId>
 		<artifactId>example</artifactId>
-		<version>${reversion}</version>
-		<relativePath>../pom.xml</relativePath>
+		<version>0.0.2</version>
 	</parent>
 	<artifactId>example-spring-mvc</artifactId>
 	<name>example-spring-mvc</name>

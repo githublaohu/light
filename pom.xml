@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>cn.lampup</groupId>
 	<artifactId>light</artifactId>
-	<version>${reversion}</version>
+	<version>0.0.2</version>
 	<packaging>pom</packaging>
 	<url>https://github.com/githublaohu/light</url>
 	<name>light</name>
@@ -37,11 +37,11 @@
 
 	<modules>
 		<module>light-core</module>
-		<module>example</module>
 		<module>light-api</module>
+		<module>example</module>
 	</modules>
 	<properties>
-		<reversion>0.0.1</reversion>
+		<reversion>0.0.2</reversion>
 		<netty.version>4.1.71.Final</netty.version>
 		<fastjson.version>1.2.83</fastjson.version>
 	</properties>

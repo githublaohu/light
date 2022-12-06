@@ -53,7 +53,7 @@ public class StringReplace {
         StringBuffer sb = new StringBuffer();
         int i = 0;
         for (Paragraph paragraph : paragraphList) {
-            if (Objects.nonNull(paragraph)) {
+            if (Objects.nonNull(paragraph.splitString)) {
                 sb.append(paragraph.splitString);
             } else {
                 sb.append(values.get(i++));

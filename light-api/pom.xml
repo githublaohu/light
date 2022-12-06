@@ -7,11 +7,10 @@
 	<parent>
 		<groupId>cn.lampup</groupId>
 		<artifactId>light</artifactId>
-		<version>${reversion}</version>
+		<version>0.0.2</version>
 	</parent>
 	<artifactId>light-api</artifactId>
-	<name>light-api</name>
-	<url>http://maven.apache.org</url>
+	<name>light-api-${project.version}</name>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
