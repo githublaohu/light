@@ -27,7 +27,7 @@ public class InterfaceController {
         return createReturnObject(testHeader);
     }
 
-    @PostMapping("/testPath/{key}/{value}/{path}")
+    @GetMapping("/testPath/{key}/{value}/{path}")
     public ReturnObject testPath(@PathVariable("key") String key11, @PathVariable("value") String value22, @PathVariable("path") String path11) {
         ReturnObject serverReturn = new ReturnObject(key11, value22);
         serverReturn.setValue(path11);

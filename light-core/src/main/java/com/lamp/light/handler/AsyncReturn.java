@@ -36,7 +36,7 @@ public class AsyncReturn {
 
     private HttpRequest fullHttpRequest;
 
-    private Integer requestTimes = 1;
+    private Integer requestTimes = 3*1000;
 
     private HandleMethod handleMethod;
 
@@ -124,7 +124,7 @@ public class AsyncReturn {
     }
 
     public synchronized Object getObject() throws InterruptedException {
-        this.wait(requestTimes + 100);
+        this.wait(requestTimes*100 + 100);
         if(object instanceof Throwable) {
             throw new RuntimeException((Throwable)object);
         }

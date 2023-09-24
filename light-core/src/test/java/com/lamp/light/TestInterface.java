@@ -27,7 +27,7 @@ public interface TestInterface {
     @POST("/testHeaders")
     ReturnObject testHeaders();
 
-    @POST("/testPath/{key}/{value}/{path}")
+    @GET("/testPath/{key}/{value}/{path}")
     ReturnObject testPath(@Path({"key","value"}) ReturnObject returnObject,@Path("path") String path);
 
     @GET("/testQuery")

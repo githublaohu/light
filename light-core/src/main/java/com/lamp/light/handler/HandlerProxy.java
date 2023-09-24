@@ -122,8 +122,8 @@ public class HandlerProxy implements InvocationHandler {
 		if (Objects.isNull(handleMethod)) {
 			handleMethod = new HandleMethod();
 			handleMethod.requestInfo = annotationAnalysis.analysis(proxy, method, this.requestInfo);
-			if (Objects.nonNull(requestInfo.getPathList())) {
-				requestInfo.setStringReplace(new StringReplace(requestInfo.getUrl()));
+			if (Objects.nonNull(handleMethod.requestInfo.getPathList())) {
+				handleMethod.requestInfo.setStringReplace(new StringReplace(handleMethod.requestInfo.getUrl()));
 			}
 			if (Objects.nonNull(success)) {
 				handleMethod.success = success;
@@ -192,7 +192,7 @@ public class HandlerProxy implements InvocationHandler {
 	public HttpRequest getHttpRequest(Object[] args, HandleMethod handleMethod, InetSocketAddress inetSocketAddress)
 			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
 			ErrorDataEncoderException {
-		if (Objects.equals(SimpleCloudImplementObject.class, args[0])) {
+		if (Objects.nonNull(args) && Objects.equals(SimpleCloudImplementObject.class, args[0])) {
 			return createHttpRequest((SimpleCloudImplementObject)args[0]);
 		}
 		
@@ -336,7 +336,6 @@ public class HandlerProxy implements InvocationHandler {
 							TypeToString.ObjectToString(map.get(coordinate.getKey())));
 				}
 			} else if (Objects.equals(coordinate.getType(), ParametersType.OBJECT)) {
-				System.out.println(coordinate.getAnnotation().annotationType());
 				if (coordinate.getAnnotation().annotationType().equals(Multipart.class)) {
 					coordinateHandler.handler(null, object);
 				} else {

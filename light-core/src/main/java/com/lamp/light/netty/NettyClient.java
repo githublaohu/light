@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 
 import com.lamp.light.LightContext;
@@ -292,9 +293,10 @@ public class NettyClient {
 					Http11Factory.getInstance().setChannelWrapper(channelWrapper);
 				}
 			}
-			
-			for(Interceptor interceptor : asyncReturn.interceptorList()) {
-				interceptor.handlerResponse(defaultHttpResponse);
+			if(Objects.nonNull(asyncReturn.interceptorList())) {
+				for (Interceptor interceptor : asyncReturn.interceptorList()) {
+					interceptor.handlerResponse(defaultHttpResponse);
+				}
 			}
 			// 这里是否需要判断 http method方法
 			boolean notReturn = Objects.isNull(asyncReturn.handleMethod().getRequestInfo().getReturnClazz());
@@ -349,8 +351,11 @@ public class NettyClient {
 		
 		private void handlerAfter() {
 			try {
-				for(Interceptor interceptor : asyncReturn.interceptorList()) {
-					interceptor.handlerAfter(asyncReturn.handleMethod().getRequestInfo().requestWrapper(), defaultHttpResponse);
+				if(Objects.nonNull(asyncReturn.interceptorList())) {
+					for (Interceptor interceptor : asyncReturn.interceptorList()) {
+						interceptor.handlerAfter(asyncReturn.handleMethod().getRequestInfo().requestWrapper(),
+								defaultHttpResponse);
+					}
 				}
 			}catch(Exception e) {
 				logger.error(e.getMessage(), e);
@@ -405,6 +410,7 @@ public class NettyClient {
 			ctx.close();
 		}
 
+		@Override
 		public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 			AsyncReturn asyncReturn = NettyClient.this.channelIdToAsynReturn.get(ctx.pipeline().channel().id());
 			NettyClient.this.error(asyncReturn, new RuntimeException("request timeout"));
@@ -425,7 +431,8 @@ public class NettyClient {
 				if(Objects.isNull(asyncReturn)) {
 					return null;
 				}
-				idleStateHandler = new IdleStateHandler(asyncReturn.requestTimes(), asyncReturn.requestTimes(), asyncReturn.requestTimes());
+				idleStateHandler = new IdleStateHandler(asyncReturn.requestTimes(), asyncReturn.requestTimes(), asyncReturn.requestTimes(),
+						TimeUnit.MILLISECONDS);
 				idleStateHandler.handlerAdded(ctx);
 			}
 			return idleStateHandler;

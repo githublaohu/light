@@ -36,22 +36,15 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.13.1</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-beanutils</groupId>
-			<artifactId>commons-beanutils</artifactId>
-			<version>1.9.4</version>
-		</dependency>
-		<dependency>
-			<groupId>cn.lampup</groupId>
-			<artifactId>component-essential</artifactId>
-			<version>0.0.1</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.aliyun.oss</groupId>
 			<artifactId>aliyun-sdk-oss</artifactId>
 			<version>3.10.2</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
 
 </project>

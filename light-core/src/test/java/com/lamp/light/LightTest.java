@@ -24,6 +24,7 @@ public class LightTest {
     public void testBody() {
         ReturnObject res = testInterface.testBody(returnObject);
         Assert.assertEquals(new ReturnObject("testBody", "value").toString(), res.toString());
+        System.out.println("testBody 请求。响应数据： "+res.toString());
     }
 
     @Test
@@ -35,6 +36,7 @@ public class LightTest {
     public void testHeader() {
         ReturnObject res = testInterface.testHeader(returnObject, "testHeader");
         Assert.assertEquals(new ReturnObject("key", "testHeader").toString(), res.toString());
+        System.out.println("testHeader 请求。响应数据： "+res.toString());
     }
 
     @Test
@@ -46,11 +48,14 @@ public class LightTest {
     public void testPath() {
         ReturnObject res = testInterface.testPath(returnObject, "testPath");
         Assert.assertEquals(new ReturnObject("key", "testPath").toString(), res.toString());
+        System.out.println("testPath 请求。响应数据： "+res.toString());
     }
 
     @Test
     public void testQuery() {
-        Assert.assertEquals(new ReturnObject("key", "testQuery2").toString(), testInterface.testQuery(new ReturnObject("key", "testQuery"),"testQuery2").toString());
+        ReturnObject res = testInterface.testQuery(new ReturnObject("key", "testQuery"),"testQuery2");
+        Assert.assertEquals(new ReturnObject("key", "testQuery2").toString(), res.toString());
+        System.out.println("testQuery 请求。响应数据： "+res.toString());
     }
 
 

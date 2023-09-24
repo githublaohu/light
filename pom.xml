@@ -39,10 +39,12 @@
 		<module>light-core</module>
 		<module>light-api</module>
 		<module>example</module>
+		<module>ligth-cache</module>
+		<module>light-common</module>
 	</modules>
 	<properties>
 		<reversion>0.0.2</reversion>
-		<netty.version>4.1.71.Final</netty.version>
+		<netty.version>4.1.86.Final</netty.version>
 		<fastjson.version>1.2.83</fastjson.version>
 	</properties>
 	<dependencyManagement>
