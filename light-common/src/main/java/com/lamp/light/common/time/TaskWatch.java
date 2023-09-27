@@ -5,18 +5,24 @@ import java.util.Map;
 
 public class TaskWatch {
 
-    private boolean useNano;
+    private final boolean useNano;
+    private final boolean accessOrder;
     private LinkedHashMap<String, StopWatch> watchMap;
-//    private ReadWriteLock lock;
 
-
-    public TaskWatch(boolean useNano) {
+    /**
+     * @param useNano     true: use nanoTime, false: use currentTimeMillis
+     * @param accessOrder true: access order, false: insert order
+     */
+    public TaskWatch(boolean useNano, boolean accessOrder) {
         this.useNano = useNano;
-        watchMap = new LinkedHashMap<>();
+        this.accessOrder = accessOrder;
+        watchMap = accessOrder ? new LinkedHashMap<>(16, 0.75f, true) : new LinkedHashMap<String, StopWatch>();
+
     }
 
     /**
      * If the taskName already exists, the previous taskName will be overwritten
+     *
      * @param taskName
      * @return
      */
@@ -38,8 +44,15 @@ public class TaskWatch {
         }
         return watch.end();
     }
-    public String allTaskOrderByStart(){
+
+    public void clear() {
+        watchMap.clear();
+    }
+
+    public String allTask() {
         StringBuilder sb = new StringBuilder();
+        sb.append(useNano ? "nano time\t---\t" : "millis time\t---\t");
+        sb.append(accessOrder ? "access order\n" : "insert order\n");
         for (Map.Entry<String, StopWatch> entry : watchMap.entrySet()) {
             sb.append(entry.getKey());
             sb.append(":\t");
@@ -48,13 +61,41 @@ public class TaskWatch {
         }
         return sb.toString();
     }
-    public void clear(){
-        watchMap.clear();
+    public void printAllTask() {
+        System.out.println(allTask());
     }
 
-    public void printAllTaskOrderByStart(){
-        System.out.println(allTaskOrderByStart());
+    /**
+     *
+     * @return neglect the task that has not ended
+     */
+    public long allTaskDuration() {
+        long duration = 0;
+        for (StopWatch watch : watchMap.values()) {
+            duration += watch.getDuration();
+        }
+        return duration;
     }
+
+    public String overview() {
+        StringBuilder sb = new StringBuilder();
+
+        final int[] finished = {0};
+        final long[] duration = {0};
+        watchMap.forEach((k, v) -> {
+            if(v.getEnd()!=0) {
+                finished[0]++;
+                duration[0] += v.getDuration();
+            }
+        });
+        sb.append("finished task: ").append(finished[0]).append('/').append(watchMap.size()).append('\n');
+        sb.append("total duration: ").append(duration[0]).append(useNano ? " ns\n" : " ms\n");
+        return sb.toString();
+    }
+    public void printOverview() {
+        System.out.println(overview());
+    }
+
 
 
 
@@ -67,7 +108,7 @@ public class TaskWatch {
             return start;
         }
 
-        public long end(){
+        public long end() {
             end = time();
             return end;
         }
@@ -79,30 +120,24 @@ public class TaskWatch {
             return getEnd() - getStart();
         }
 
-        public long getStart(){
+        public long getStart() {
             return start;
         }
 
-        public long getEnd(){
+        public long getEnd() {
             return end;
         }
 
         public String Info() {
             StringBuilder sb = new StringBuilder();
             if (getStart() == 0) {
-                sb.append("0");
-                return sb.toString();
+                return sb.append("0").toString();
             }
-            sb.append(this.getStart());
-            sb.append(" --");
+            sb.append(this.getStart()).append(" --");
             if (getEnd() == 0) {
-                sb.append("--> ");
-                return sb.toString();
+                return sb.append("--> ").toString();
             }
-            sb.append(getEnd() - getStart());
-            sb.append("--> ");
-            sb.append(getEnd());
-            return sb.toString();
+            return sb.append(getDuration()).append("--> ").append(getEnd()).toString();
         }
 
 
@@ -115,6 +150,7 @@ public class TaskWatch {
         }
 
     }
+
     private class NanoStopWatch extends StopWatch {
         @Override
         public long time() {

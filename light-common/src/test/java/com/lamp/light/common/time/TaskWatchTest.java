@@ -6,31 +6,45 @@ import org.junit.Test;
 
 public class TaskWatchTest {
 
-    private TaskWatch taskWatch;
+    private TaskWatch test01, test02;
 
     @Before
     public void before() {
-        taskWatch = new TaskWatch(false);
+        test01 = new TaskWatch(false,false);
+        test02 = new TaskWatch(true,true);
+        test01.clear();
     }
     @Test
-    public void basicTest() throws InterruptedException {
-        taskWatch.clear();
-        long start = taskWatch.startTask("test01");
+    public void basicTest1() throws InterruptedException {
+        long start = test01.startTask("test01");
         Thread.sleep(5);
-        long end = taskWatch.endTask("test01");
+        long end = test01.endTask("test01");
         Assert.assertNotEquals(0, start);
         Assert.assertNotEquals(-1, end);
         Assert.assertTrue(end > start);
-        taskWatch.printAllTaskOrderByStart();
+        test01.printAllTask();
     }
 
     @Test
-    public void complexTest() throws InterruptedException {
-        taskWatch.startTask("test01");
-        taskWatch.startTask("test02");
-        taskWatch.endTask("test01");
-        taskWatch.startTask("test02");
-        taskWatch.printAllTaskOrderByStart();
+    public void complexTest1() throws InterruptedException {
+        test01.startTask("test01");
+        test01.startTask("test02");
+        Thread.sleep(5);
+        test01.endTask("test01");
+        test01.startTask("test02");
+        test01.printAllTask();
+        test01.printOverview();
+    }
+
+    @Test
+    public void accessOrderTest1() throws InterruptedException {
+        test02.startTask("test01");
+        test02.startTask("test02");
+        test02.endTask("test02");
+        test02.startTask("test03");
+        test02.endTask("test01");
+        test02.printAllTask();
+        test02.printOverview();
     }
 }
 
