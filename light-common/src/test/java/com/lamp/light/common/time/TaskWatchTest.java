@@ -10,8 +10,8 @@ public class TaskWatchTest {
 
     @Before
     public void before() {
-        test01 = new TaskWatch(false,false);
-        test02 = new TaskWatch(true,true);
+        test01 = new TaskWatch(TaskWatch.Method.MillisInsert);
+        test02 = new TaskWatch(TaskWatch.Method.NanoAccess);
         test01.clear();
     }
     @Test

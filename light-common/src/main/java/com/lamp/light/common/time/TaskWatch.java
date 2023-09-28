@@ -4,19 +4,25 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class TaskWatch {
+    public enum Method {
+        MillisAccess, MillisInsert, NanoAccess, NanoInsert
+    }
 
-    private final boolean useNano;
-    private final boolean accessOrder;
+    private Method method;
     private LinkedHashMap<String, StopWatch> watchMap;
 
     /**
-     * @param useNano     true: use nanoTime, false: use currentTimeMillis
-     * @param accessOrder true: access order, false: insert order
+     *
+     * @param method Millis / Nano 表示使用毫秒 / 纳秒; Access / Insert 表示使用访问顺序 / 插入顺序
      */
-    public TaskWatch(boolean useNano, boolean accessOrder) {
-        this.useNano = useNano;
-        this.accessOrder = accessOrder;
-        watchMap = accessOrder ? new LinkedHashMap<>(16, 0.75f, true) : new LinkedHashMap<String, StopWatch>();
+    public TaskWatch(Method method) {
+        this.method = method;
+        if (method == Method.MillisAccess || method == Method.NanoAccess) {
+            watchMap = new LinkedHashMap<>(16, 0.75f, true);
+        }
+        else {
+            watchMap = new LinkedHashMap<>();
+        }
 
     }
 
@@ -28,7 +34,7 @@ public class TaskWatch {
      */
     public long startTask(String taskName) {
         StopWatch newWatch;
-        if (useNano) {
+        if (method == Method.NanoAccess || method == Method.NanoInsert) {
             newWatch = new NanoStopWatch();
         } else {
             newWatch = new MillisStopWatch();
@@ -51,8 +57,8 @@ public class TaskWatch {
 
     public String allTask() {
         StringBuilder sb = new StringBuilder();
-        sb.append(useNano ? "nano time\t---\t" : "millis time\t---\t");
-        sb.append(accessOrder ? "access order\n" : "insert order\n");
+        sb.append(method == Method.NanoAccess|| method == Method.NanoInsert ? "nano time\t---\t" : "millis time\t---\t");
+        sb.append(method == Method.NanoAccess|| method == Method.MillisAccess ? "access order\n" : "insert order\n");
         for (Map.Entry<String, StopWatch> entry : watchMap.entrySet()) {
             sb.append(entry.getKey());
             sb.append(":\t");
@@ -89,7 +95,7 @@ public class TaskWatch {
             }
         });
         sb.append("finished task: ").append(finished[0]).append('/').append(watchMap.size()).append('\n');
-        sb.append("total duration: ").append(duration[0]).append(useNano ? " ns\n" : " ms\n");
+        sb.append("total duration: ").append(duration[0]).append(method == Method.NanoAccess|| method == Method.NanoInsert ? " ns\n" : " ms\n");
         return sb.toString();
     }
     public void printOverview() {
