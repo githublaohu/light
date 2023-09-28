@@ -6,10 +6,8 @@ import org.junit.Test;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 
 public class TimeTrunkTest {
 

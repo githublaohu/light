@@ -34,6 +34,7 @@ public class TaskWatchTest {
         test01.startTask("test02");
         test01.printAllTask();
         test01.printOverview();
+        System.out.println(test01.allTaskDuration());
     }
 
     @Test

@@ -3,24 +3,20 @@ package com.lamp.light.common.time;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * 一个用来计算任务耗时的工具类
+ */
 public class TaskWatch {
-    public enum Method {
-        MillisAccess, MillisInsert, NanoAccess, NanoInsert
-    }
-
-    private Method method;
-    private LinkedHashMap<String, StopWatch> watchMap;
-
+    private final Method method;
+    private final LinkedHashMap<String, StopWatch> watchMap;
     /**
-     *
      * @param method Millis / Nano 表示使用毫秒 / 纳秒; Access / Insert 表示使用访问顺序 / 插入顺序
      */
     public TaskWatch(Method method) {
         this.method = method;
         if (method == Method.MillisAccess || method == Method.NanoAccess) {
             watchMap = new LinkedHashMap<>(16, 0.75f, true);
-        }
-        else {
+        } else {
             watchMap = new LinkedHashMap<>();
         }
 
@@ -29,8 +25,8 @@ public class TaskWatch {
     /**
      * If the taskName already exists, the previous taskName will be overwritten
      *
-     * @param taskName
-     * @return
+     * @param taskName 任务名
+     * @return 开始时间
      */
     public long startTask(String taskName) {
         StopWatch newWatch;
@@ -55,10 +51,13 @@ public class TaskWatch {
         watchMap.clear();
     }
 
+    /**
+     * @return 所有任务的开始时间,结束时间,耗时 的字符串
+     */
     public String allTask() {
         StringBuilder sb = new StringBuilder();
-        sb.append(method == Method.NanoAccess|| method == Method.NanoInsert ? "nano time\t---\t" : "millis time\t---\t");
-        sb.append(method == Method.NanoAccess|| method == Method.MillisAccess ? "access order\n" : "insert order\n");
+        sb.append(method == Method.NanoAccess || method == Method.NanoInsert ? "nano time\t---\t" : "millis time\t---\t");
+        sb.append(method == Method.NanoAccess || method == Method.MillisAccess ? "access order\n" : "insert order\n");
         for (Map.Entry<String, StopWatch> entry : watchMap.entrySet()) {
             sb.append(entry.getKey());
             sb.append(":\t");
@@ -67,13 +66,16 @@ public class TaskWatch {
         }
         return sb.toString();
     }
+
+    /**
+     * 打印所有任务的开始时间,结束时间,耗时
+     */
     public void printAllTask() {
         System.out.println(allTask());
     }
 
     /**
-     *
-     * @return neglect the task that has not ended
+     * @return 忽略所有未结束的任务,返回所有任务的总耗时
      */
     public long allTaskDuration() {
         long duration = 0;
@@ -83,27 +85,39 @@ public class TaskWatch {
         return duration;
     }
 
+    /**
+     *
+     * @return 所有任务的总耗时和完成情况
+     */
     public String overview() {
         StringBuilder sb = new StringBuilder();
 
         final int[] finished = {0};
         final long[] duration = {0};
         watchMap.forEach((k, v) -> {
-            if(v.getEnd()!=0) {
+            if (v.getEnd() != 0) {
                 finished[0]++;
                 duration[0] += v.getDuration();
             }
         });
         sb.append("finished task: ").append(finished[0]).append('/').append(watchMap.size()).append('\n');
-        sb.append("total duration: ").append(duration[0]).append(method == Method.NanoAccess|| method == Method.NanoInsert ? " ns\n" : " ms\n");
+        sb.append("total duration: ").append(duration[0]).append(method == Method.NanoAccess || method == Method.NanoInsert ? " ns\n" : " ms\n");
         return sb.toString();
     }
+
+    /**
+     * 打印所有任务的总耗时和完成情况
+     */
     public void printOverview() {
         System.out.println(overview());
     }
 
-
-
+    /**
+     * 计时时间单位和获取时使用的顺序,Insert使用插入计时器的顺序,Access使用最后操作计时器的顺序
+     */
+    public enum Method {
+        MillisAccess, MillisInsert, NanoAccess, NanoInsert
+    }
 
     private abstract class StopWatch {
         private long start;
