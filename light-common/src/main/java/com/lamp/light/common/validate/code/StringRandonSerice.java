@@ -21,4 +21,9 @@ public class StringRandonSerice extends  AbstractRandomService{
     public String createRandom(ValidateCode validateCode) {
         return generateRandomString(this.validateCodeConfig.getLength());
     }
+
+    @Override
+    protected void doInit() {
+
+    }
 }

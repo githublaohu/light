@@ -6,6 +6,6 @@ package com.lamp.light.api.cache.local;
 public interface CompleteLoadService<T> {
 
 
-    public String dataServerName();
+    public String dataServiceName();
 
 }

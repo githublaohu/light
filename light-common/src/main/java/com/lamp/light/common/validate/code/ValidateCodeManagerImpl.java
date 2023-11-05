@@ -42,6 +42,7 @@ public class ValidateCodeManagerImpl implements ValidateCodeManager {
 
     private String createKey() {
 
+        return "";
     }
 
     @Override
@@ -49,7 +50,7 @@ public class ValidateCodeManagerImpl implements ValidateCodeManager {
         AbstractRandomService randomService =
                 randomServiceMap.get(validateCode.getSystem()).get(validateCode.getDomain())
                         .get(validateCode.getDrop());
-        String key =
+        String key ="";
         for ( ; ; ) {
             // 获得随机
             randomService.createRandom(validateCode);
@@ -58,7 +59,7 @@ public class ValidateCodeManagerImpl implements ValidateCodeManager {
         }
 
         // 保存数据，使用异步，提供接口，
-        validateCodePersistenceService.installValidateCode();
+       // validateCodePersistenceService.installValidateCode();
 
     }
 

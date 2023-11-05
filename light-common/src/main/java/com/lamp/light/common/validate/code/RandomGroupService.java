@@ -7,4 +7,9 @@ public class RandomGroupService extends  AbstractRandomService{
     public String createRandom(ValidateCode validateCode) {
         return null;
     }
+
+    @Override
+    protected void doInit() {
+
+    }
 }
