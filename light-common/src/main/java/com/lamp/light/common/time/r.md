@@ -18,7 +18,9 @@ long executeTime = System.currentTimeMillis() - time;
 2. 时间单位。毫秒，微秒
 3. for
 4. 使用的集合是什么。
-
+5. 总时间
+6. 逆向排序
+7. 任务完成情况？
 #### 时间取整 与补充
 问题： 在数据操作的时候，经常需要对数据进行取整
 ```txt
@@ -42,7 +44,7 @@ public LocalDateTime qu(LocalDateTime time , TimeUitl time){}
 
 
 #### 在两个时间取值
-问题：在数据操作的时候，经常需要对数据按照时间进行整理，所以需要去连个时间之间值
+问题：在数据操作的时候，经常需要对数据按照时间进行整理，所以需要取两个时间之间值
 ```text
 
 A：2023.09.24 18:50:12  B：2023.09.24 20:50:12  
@@ -52,6 +54,7 @@ A：2023.09.24 18:50:12  B：2023.09.24 20:50:12
     2023.09.24 18:50:00
     2023.09.24 18:51:00
     2023.09.24 18:52:00
+    
     ......
     2023.09.24 20:51:00
 public LocalDateTime qu(LocalDateTime time , LocalDateTime two ,TimeUitl time){}
