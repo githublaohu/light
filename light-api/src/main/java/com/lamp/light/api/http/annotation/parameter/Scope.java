@@ -18,20 +18,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
  * @author laohu
- *
  */
 @Documented
-@Target({ElementType.TYPE , ElementType.PARAMETER})
+@Target({ElementType.TYPE, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Scope {
 
-	String name();
-	
-	Class<?>[] clazz() default {};
-	
-	String[] clazzName() default {};
-	
-	String[] packageName() default {};
+    String name();
+
+    Class<?>[] clazz() default {};
+
+    String[] clazzName() default {};
+
+    String[] packageName() default {};
 }

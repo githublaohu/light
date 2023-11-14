@@ -20,24 +20,24 @@ import com.lamp.light.api.response.ReturnMode;
 import com.lamp.light.netty.NettyClient;
 
 
-public class DefaultCall<T>  implements Call<T> {
+public class DefaultCall<T> implements Call<T> {
 
     private AsyncReturn asyncReturn;
-    
+
     private NettyClient nettyClient;
-    
+
     private Callback<T> callback;
-    
+
     private Response<T> response;
-    
+
     private InetSocketAddress inetSocketAddress;
-    
+
     private Throwable throwable;
-    
+
     private T object;
-    
-    
-    public DefaultCall(AsyncReturn asyncReturn, NettyClient nettyClient, InetSocketAddress inetSocketAddress ) {
+
+
+    public DefaultCall(AsyncReturn asyncReturn, NettyClient nettyClient, InetSocketAddress inetSocketAddress) {
         this.asyncReturn = asyncReturn;
         this.nettyClient = nettyClient;
         this.inetSocketAddress = inetSocketAddress;
@@ -52,9 +52,9 @@ public class DefaultCall<T>  implements Call<T> {
 
     @Override
     public void execute(Callback<T> callback) {
-    	asyncReturn.returnMode(ReturnMode.CALL_ASYNS);
+        asyncReturn.returnMode(ReturnMode.CALL_ASYNS);
         this.callback = callback;
-        
+
     }
 
     @Override
@@ -64,14 +64,14 @@ public class DefaultCall<T>  implements Call<T> {
 
     @Override
     public void cancel() {
-        
+
     }
 
     @Override
     public boolean isCanceled() {
         return false;
     }
-    
+
 
     public Callback<T> getCallback() {
         return callback;
@@ -84,12 +84,12 @@ public class DefaultCall<T>  implements Call<T> {
     public void setResponse(Response<T> response) {
         this.response = response;
     }
-    
-    
+
+
     public void setThrowable(Throwable throwable) {
         this.throwable = throwable;
     }
-    
+
     public Throwable getThrowable() {
         return throwable;
     }
@@ -105,12 +105,12 @@ public class DefaultCall<T>  implements Call<T> {
     }
 
     public void setObject(T object) {
-    	this.object = object;
+        this.object = object;
     }
 
-	@Override
-	public T getObject() {
-		return this.object;
-	}
-    
+    @Override
+    public T getObject() {
+        return this.object;
+    }
+
 }

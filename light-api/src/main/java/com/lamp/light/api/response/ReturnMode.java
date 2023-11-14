@@ -12,6 +12,6 @@
 package com.lamp.light.api.response;
 
 public enum ReturnMode {
-    
-    SYNS,CALL,CALL_SYNS,CALL_ASYNS,ASYSN;
+
+    SYNS, CALL, CALL_SYNS, CALL_ASYNS, ASYSN;
 }

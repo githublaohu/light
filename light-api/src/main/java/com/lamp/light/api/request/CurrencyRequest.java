@@ -4,85 +4,85 @@ import java.util.Map;
 
 public class CurrencyRequest {
 
-	private String address;
-	
-	private String port;
-	
-	private String url;
-	
-	private String requestMethod;
-	
-	private Map<String,Object> header;
-	
-	private Map<String,String> query;
-	
-	private Map<String,String> form;
-	
-	private byte[] body;
+    private String address;
 
-	public String getAddress() {
-		return address;
-	}
+    private String port;
 
-	public void setAddress(String address) {
-		this.address = address;
-	}
+    private String url;
 
-	public String getPort() {
-		return port;
-	}
+    private String requestMethod;
 
-	public void setPort(String port) {
-		this.port = port;
-	}
+    private Map<String, Object> header;
 
-	public String getUrl() {
-		return url;
-	}
+    private Map<String, String> query;
 
-	public void setUrl(String url) {
-		this.url = url;
-	}
+    private Map<String, String> form;
 
-	public String getRequestMethod() {
-		return requestMethod;
-	}
+    private byte[] body;
 
-	public void setRequestMethod(String requestMethod) {
-		this.requestMethod = requestMethod;
-	}
+    public String getAddress() {
+        return address;
+    }
 
-	public Map<String, Object> getHeader() {
-		return header;
-	}
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-	public void setHeader(Map<String, Object> header) {
-		this.header = header;
-	}
+    public String getPort() {
+        return port;
+    }
 
-	public Map<String, String> getQuery() {
-		return query;
-	}
+    public void setPort(String port) {
+        this.port = port;
+    }
 
-	public void setQuery(Map<String, String> query) {
-		this.query = query;
-	}
+    public String getUrl() {
+        return url;
+    }
 
-	public Map<String, String> getForm() {
-		return form;
-	}
+    public void setUrl(String url) {
+        this.url = url;
+    }
 
-	public void setForm(Map<String, String> form) {
-		this.form = form;
-	}
+    public String getRequestMethod() {
+        return requestMethod;
+    }
 
-	public byte[] getBody() {
-		return body;
-	}
+    public void setRequestMethod(String requestMethod) {
+        this.requestMethod = requestMethod;
+    }
 
-	public void setBody(byte[] body) {
-		this.body = body;
-	}
-	
-	
+    public Map<String, Object> getHeader() {
+        return header;
+    }
+
+    public void setHeader(Map<String, Object> header) {
+        this.header = header;
+    }
+
+    public Map<String, String> getQuery() {
+        return query;
+    }
+
+    public void setQuery(Map<String, String> query) {
+        this.query = query;
+    }
+
+    public Map<String, String> getForm() {
+        return form;
+    }
+
+    public void setForm(Map<String, String> form) {
+        this.form = form;
+    }
+
+    public byte[] getBody() {
+        return body;
+    }
+
+    public void setBody(byte[] body) {
+        this.body = body;
+    }
+
+
 }

@@ -18,5 +18,5 @@ import com.lamp.light.api.route.RouteSelect;
 
 public interface BroadcastRouteSelect extends RouteSelect {
 
-	public List<LampInstance> selects(Object[] args, Class<?> clazz);
+    public List<LampInstance> selects(Object[] args, Class<?> clazz);
 }

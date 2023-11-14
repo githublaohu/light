@@ -1,9 +1,11 @@
 ## 说明
- > light基于netty实现的易用轻量级异步http client库，支持spring与spring boot注入。
- 
+
+> light基于netty实现的易用轻量级异步http client库，支持spring与spring boot注入。
+
 ## 依赖
- 
+
 ### 直接使用
+
 ```xml
 <dependency>
 	<groupId>cn.lampup</groupId>
@@ -11,8 +13,9 @@
 	<version>${version}</version>
 </dependency>
 ```
- 
+
 ### API包使用
+
 ```xml
 <dependency>
 	<groupId>cn.lampup</groupId>
@@ -20,8 +23,9 @@
 	<version>${version}</version>
 </dependency>
 ```
+
 ## 使用
- 
+
 ### 方法与参数
 
 ```java
@@ -69,12 +73,13 @@ public interface TestInterface {
     ReturnObject testData(@Field({"key", "value"}) @Path({"key", "value"}) @Query({"key", "value"}) @Header({"key", "value"}) ReturnObject returnObject);
 }
 ```
- 
+
 ### 上传文件
+
 可以使用MultipartUpload对象与Multipart注解用于上传文件
 
-
 #### 案例
+
 ```java
 public class MultipartTest {
 
@@ -154,6 +159,7 @@ public class MultipartTest {
 ```
 
 #### Multipart
+
 ```java
 public @interface Multipart {
 
@@ -166,6 +172,7 @@ public @interface Multipart {
 ```
 
 #### MultipartUpload
+
 ```java
 
 public class MultipartUpload {
@@ -186,10 +193,10 @@ public class MultipartUpload {
 }
 ```
 
-
 ### 下载文件
- 
+
 ### call与异步
+
 ```java
 package com.lamp.light;
 
@@ -304,7 +311,7 @@ public class ExecuteTest {
 	}
 }
 ```
- 
+
 ### http协议
 
 ### 拦截器
@@ -327,11 +334,13 @@ public interface Interceptor {
     }
 }
 ```
+
 调用循序是 handlerBefore->handlerRequest->handlerResponse->handlerAfter
- 
+
 ### 序列化
+
 需要实现Serialize接口。默认序列化化方式是FastJsonSerialize
- 
+
 ```java
  public interface Serialize {
 
@@ -342,7 +351,9 @@ public interface Interceptor {
 ```
 
 #### 直接使用
+
 在创建Ligth对象的时候传入就好。
+
 ```java
 Light light = builder.host("127.0.0.1").port(8001).serialize(new FastJsonSerialize()).build();
 ```
@@ -357,27 +368,31 @@ public @interface Body {
 ```
 
 ### 路由与广播
+
 想动态指定服务端网络地址或则使用注册中心的时候可以使用路由模式，实现RouteSelect接口
 
 #### 路由
+
 路由接口
+
 ```java
 public interface RouteSelect {
 	public LampInstance select(Object[] args, Class<?> clazz);
 }
 Light light = builder.host("127.0.0.1").port(8001).routeSelect(new MyRouteSelect()).build();
 ```
- 
+
 #### 广播
+
 有一些场景需要广播模式，可以实现BroadcastRouteSelect对象
+
 ```java
 public interface BroadcastRouteSelect extends RouteSelect {
 
 	public List<LampInstance> selects(Object[] args, Class<?> clazz);
 }
 ```
- 
- 
+
 ## spring 使用
  
 

@@ -15,24 +15,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public interface TypeToString<T> {
-    
+
     @SuppressWarnings("unchecked")
-    public static String  ObjectToString(Object object) {
-        if(!object.getClass().isPrimitive()) {
-           return object instanceof String ? (String)object: object.toString();
+    public static String ObjectToString(Object object) {
+        if (!object.getClass().isPrimitive()) {
+            return object instanceof String ? (String) object : object.toString();
         }
         String cn = object.getClass().getSimpleName();
         return TypeToStringWrapper.TPYE_TO_OBJECT.get(cn).typeToString(object);
     }
-    
+
     String typeToString(T t);
 
-    static class TypeToStringWrapper{
+    static class TypeToStringWrapper {
         @SuppressWarnings("rawtypes")
         static Map<String, TypeToString> TPYE_TO_OBJECT = new HashMap<>();
-        
+
         static {
-            TPYE_TO_OBJECT.put("int",  new IntToString());
+            TPYE_TO_OBJECT.put("int", new IntToString());
             TPYE_TO_OBJECT.put("long", new LongToString());
             TPYE_TO_OBJECT.put("short", new ShortToString());
             TPYE_TO_OBJECT.put("byte", new ShortToString());
@@ -40,7 +40,7 @@ public interface TypeToString<T> {
             TPYE_TO_OBJECT.put("float", new FloatToString());
         }
     }
-    
+
     static class LongToString implements TypeToString<Long> {
 
         @Override

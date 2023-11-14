@@ -10,32 +10,32 @@ public class StringReplace {
     private List<Paragraph> paragraphList = new ArrayList<>();
 
 
-	public StringReplace(String data) {
-		String[] stringArray  = data.split("\\{");
-		for(int i = 0 ; i< stringArray.length ; i++) {
-			String splitString = stringArray[i];
-			if(Objects.equals(splitString, "")) {
-				continue;
-			}else {
-				if(splitString.indexOf('}') == -1) {
-					Paragraph paragraph = new Paragraph();
-					paragraph.splitString = splitString;
-					paragraphList.add(paragraph);
-					continue;
-				}
-			}
-			String[] tmp = splitString.split("}");
-			Paragraph paragraph = new Paragraph();
-			paragraph.key = tmp[0];
-			paragraphList.add(paragraph);
+    public StringReplace(String data) {
+        String[] stringArray = data.split("\\{");
+        for (int i = 0; i < stringArray.length; i++) {
+            String splitString = stringArray[i];
+            if (Objects.equals(splitString, "")) {
+                continue;
+            } else {
+                if (splitString.indexOf('}') == -1) {
+                    Paragraph paragraph = new Paragraph();
+                    paragraph.splitString = splitString;
+                    paragraphList.add(paragraph);
+                    continue;
+                }
+            }
+            String[] tmp = splitString.split("}");
+            Paragraph paragraph = new Paragraph();
+            paragraph.key = tmp[0];
+            paragraphList.add(paragraph);
 
-			if(tmp.length == 2) {
-				paragraph = new Paragraph();
-				paragraph.splitString = tmp[1];
-				paragraphList.add(paragraph);
-			}
-		}
-	}
+            if (tmp.length == 2) {
+                paragraph = new Paragraph();
+                paragraph.splitString = tmp[1];
+                paragraphList.add(paragraph);
+            }
+        }
+    }
 
     public String replace(Map<String, String> values) {
         StringBuffer sb = new StringBuffer();

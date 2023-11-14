@@ -11,10 +11,11 @@
  */
 package com.lamp.light.api.call;
 
-public interface Callback<T> extends Runnable{
+public interface Callback<T> extends Runnable {
 
-	public default void run() {}
-	
+    public default void run() {
+    }
+
     public void onResponse(Call<T> call, Object[] args, T returnData);
 
     public void onFailure(Call<T> call, Object[] args, Throwable t);

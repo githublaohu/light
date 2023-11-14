@@ -18,13 +18,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-@Target({ ElementType.PARAMETER })
+@Target({ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Multipart {
 
-	String value() default "";
-	
-	String name() default "";
-	
-	String format() default "";
+    String value() default "";
+
+    String name() default "";
+
+    String format() default "";
 }

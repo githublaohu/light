@@ -27,7 +27,7 @@ import io.netty.handler.codec.http.HttpMethod;
 public class RequestInfo {
 
     private String url;
-    
+
     private String protocol = LightConstant.PROTOCOL_HTTP_10;
 
     private HttpMethod httpMethod;
@@ -47,31 +47,31 @@ public class RequestInfo {
     private List<Coordinate> queryList;
 
     private List<Coordinate> pathList;
-    
+
     private StringReplace stringReplace;
 
     private List<Coordinate> fieldList;
 
     private List<Coordinate> cookieList;
-    
+
     private List<Coordinate> multipartList;
 
     private int bodyIndex;
 
     private Method method;
-    
+
     private ReturnMode returnMode;
-    
+
     private boolean isTls;
-    
+
     private Object proxy;
-    
+
     private RequestWrapper requestWrapper = new RequestWrapper(this);
 
     public RequestWrapper requestWrapper() {
-    	return requestWrapper;
+        return requestWrapper;
     }
-    
+
     public String getUrl() {
         return url;
     }
@@ -196,44 +196,44 @@ public class RequestInfo {
         this.isBody = isBody;
     }
 
-	public boolean isTls() {
-		return isTls;
-	}
+    public boolean isTls() {
+        return isTls;
+    }
 
-	public void setTls(boolean isTls) {
-		this.isTls = isTls;
-	}
+    public void setTls(boolean isTls) {
+        this.isTls = isTls;
+    }
 
-	public String getProtocol() {
-		return protocol;
-	}
+    public String getProtocol() {
+        return protocol;
+    }
 
-	public void setProtocol(String protocol) {
-		this.protocol = protocol;
-	}
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
-	public List<Coordinate> getMultipartList() {
-		return multipartList;
-	}
+    public List<Coordinate> getMultipartList() {
+        return multipartList;
+    }
 
-	public void setMultipartList(List<Coordinate> multipartList) {
-		this.multipartList = multipartList;
-	}
+    public void setMultipartList(List<Coordinate> multipartList) {
+        this.multipartList = multipartList;
+    }
 
-	public StringReplace getStringReplace() {
-		return stringReplace;
-	}
+    public StringReplace getStringReplace() {
+        return stringReplace;
+    }
 
-	public void setStringReplace(StringReplace stringReplace) {
-		this.stringReplace = stringReplace;
-	}
+    public void setStringReplace(StringReplace stringReplace) {
+        this.stringReplace = stringReplace;
+    }
 
-	public Object getProxy() {
-		return proxy;
-	}
+    public Object getProxy() {
+        return proxy;
+    }
 
-	public void setProxy(Object proxy) {
-		this.proxy = proxy;
-	}    
-	
+    public void setProxy(Object proxy) {
+        this.proxy = proxy;
+    }
+
 }

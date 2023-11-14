@@ -7,6 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class SpringMVCExampleApplication {
 
     public static void main(String[] args) {
-    	SpringApplication.run(SpringMVCExampleApplication.class, args);
+        SpringApplication.run(SpringMVCExampleApplication.class, args);
     }
 }

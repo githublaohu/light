@@ -32,112 +32,111 @@ import com.sun.net.httpserver.HttpServer;
 
 @SuppressWarnings("restriction")
 public class ExecuteTest {
-	
-	
+
+
     private ReturnObject returnObject = new ReturnObject("key", "value");
-    
+
     private TestCallExecuteService testExecuteService;
-    
+
     private TestAsyncExecuteService testAsyncExecuteService;
 
-	
-	@Before
-	public void init() throws Exception {
-		HttpServer server = HttpServer.create(new InetSocketAddress(8001), 0);
+
+    @Before
+    public void init() throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress(8001), 0);
         server.createContext("/", new HttpHandler() {
 
-			@Override
-			public void handle(HttpExchange exchange) throws IOException {
-				OutputStream os = exchange.getResponseBody();
-	            if(exchange.getRequestURI().getPath().endsWith("Fail")) {
-	            	exchange.sendResponseHeaders(404, 0);
-	            }else {
-		            exchange.sendResponseHeaders(200, 0);
-		            exchange.getResponseHeaders().set("Content", "application/json");
-		            
-		            ReturnObject returnObject = new ReturnObject("key", exchange.getRequestURI().toString());
-		            os.write(JSON.toJSONBytes(returnObject));
-	            }
-	            os.close();
-			}
-        	
+            @Override
+            public void handle(HttpExchange exchange) throws IOException {
+                OutputStream os = exchange.getResponseBody();
+                if (exchange.getRequestURI().getPath().endsWith("Fail")) {
+                    exchange.sendResponseHeaders(404, 0);
+                } else {
+                    exchange.sendResponseHeaders(200, 0);
+                    exchange.getResponseHeaders().set("Content", "application/json");
+
+                    ReturnObject returnObject = new ReturnObject("key", exchange.getRequestURI().toString());
+                    os.write(JSON.toJSONBytes(returnObject));
+                }
+                os.close();
+            }
+
         });
         server.start();
-        
+
         Builder builder = Light.Builder();
         Light light = builder.host("127.0.0.1").port(8001).build();
-        testExecuteService = light.create(TestCallExecuteService.class );
-        testAsyncExecuteService = light.create(TestAsyncExecuteService.class , new TestExecuteServiceImpl());
-	}
-	
-	
-	@Test
-	public void testCall() throws InterruptedException{
-		Callback<ReturnObject> callback = new Callback<ReturnObject>() {
-			@Override
-			public void onResponse(Call<ReturnObject> call, Object[] args, ReturnObject returnData) {
-				System.out.println(JSON.toJSONString(returnData));
-				Assert.assertEquals(returnData.getValue(), "/callSuccess");
-				
-			}
-			
-			@Override
-			public void onFailure(Call<ReturnObject> call, Object[] args, Throwable t) {
-				System.out.println(t.getMessage());
-				Assert.assertEquals(t.getMessage(), "404 Not Found");
-				
-			}
-		};
-		testExecuteService.callSuccess(returnObject).execute(callback);
-		testExecuteService.callFail(returnObject).execute(callback);
-		Thread.sleep(50);
-	}
-	
-	@Test
-	public void testAsync() throws InterruptedException {
-		testAsyncExecuteService.asyncFail(returnObject);
-		testAsyncExecuteService.asyncSuccess(returnObject);
-		Thread.sleep(500);
-	}
-	
-	
+        testExecuteService = light.create(TestCallExecuteService.class);
+        testAsyncExecuteService = light.create(TestAsyncExecuteService.class, new TestExecuteServiceImpl());
+    }
 
-	@Body
-	@POST
-	public interface TestCallExecuteService{		
-		
-		public Call<ReturnObject> callSuccess(ReturnObject returnObject);
-		
-		public Call<ReturnObject> callFail(ReturnObject returnObject);
-		
-	}
-	
-	@Body
-	@POST
-	public interface TestAsyncExecuteService{
-		
-		
-		public ReturnObject asyncSuccess(ReturnObject returnObject);
-		
-		public ReturnObject asyncFail(ReturnObject returnObject);
-	}
-	
-	public class TestExecuteServiceImpl implements TestAsyncExecuteService{
 
-		@Override
-		public ReturnObject asyncSuccess(ReturnObject returnObject) {
-			ReturnObject newReturnObject = LightContext.lightContext().result();
-			System.out.println(JSON.toJSONString(newReturnObject));
-			Assert.assertEquals(newReturnObject.getValue(), "/asyncSuccess");
-			return null;
-		}
+    @Test
+    public void testCall() throws InterruptedException {
+        Callback<ReturnObject> callback = new Callback<ReturnObject>() {
+            @Override
+            public void onResponse(Call<ReturnObject> call, Object[] args, ReturnObject returnData) {
+                System.out.println(JSON.toJSONString(returnData));
+                Assert.assertEquals(returnData.getValue(), "/callSuccess");
 
-		@Override
-		public ReturnObject asyncFail(ReturnObject returnObject) {
-			System.out.println(LightContext.lightContext().throwable().getMessage());
-			Assert.assertEquals(LightContext.lightContext().throwable().getMessage(), "404 Not Found");
-			return null;
-		}
-		
-	}
+            }
+
+            @Override
+            public void onFailure(Call<ReturnObject> call, Object[] args, Throwable t) {
+                System.out.println(t.getMessage());
+                Assert.assertEquals(t.getMessage(), "404 Not Found");
+
+            }
+        };
+        testExecuteService.callSuccess(returnObject).execute(callback);
+        testExecuteService.callFail(returnObject).execute(callback);
+        Thread.sleep(50);
+    }
+
+    @Test
+    public void testAsync() throws InterruptedException {
+        testAsyncExecuteService.asyncFail(returnObject);
+        testAsyncExecuteService.asyncSuccess(returnObject);
+        Thread.sleep(500);
+    }
+
+
+    @Body
+    @POST
+    public interface TestCallExecuteService {
+
+        public Call<ReturnObject> callSuccess(ReturnObject returnObject);
+
+        public Call<ReturnObject> callFail(ReturnObject returnObject);
+
+    }
+
+    @Body
+    @POST
+    public interface TestAsyncExecuteService {
+
+
+        public ReturnObject asyncSuccess(ReturnObject returnObject);
+
+        public ReturnObject asyncFail(ReturnObject returnObject);
+    }
+
+    public class TestExecuteServiceImpl implements TestAsyncExecuteService {
+
+        @Override
+        public ReturnObject asyncSuccess(ReturnObject returnObject) {
+            ReturnObject newReturnObject = LightContext.lightContext().result();
+            System.out.println(JSON.toJSONString(newReturnObject));
+            Assert.assertEquals(newReturnObject.getValue(), "/asyncSuccess");
+            return null;
+        }
+
+        @Override
+        public ReturnObject asyncFail(ReturnObject returnObject) {
+            System.out.println(LightContext.lightContext().throwable().getMessage());
+            Assert.assertEquals(LightContext.lightContext().throwable().getMessage(), "404 Not Found");
+            return null;
+        }
+
+    }
 }

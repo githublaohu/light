@@ -91,16 +91,16 @@ public class AnnotationAnalysis {
         //  解析Header
         readHeaders(clazz, requestInfo, null);
         //  解析Method
-        readHttpMethod(clazz, requestInfo,null);
+        readHttpMethod(clazz, requestInfo, null);
         return requestInfo;
     }
 
-    public RequestInfo analysis(Object proxy,Method method, RequestInfo classRequestInfo) throws Exception {
+    public RequestInfo analysis(Object proxy, Method method, RequestInfo classRequestInfo) throws Exception {
         //  构建请求上下文
         RequestInfo requestInfo = new RequestInfo();
         requestInfo.setProxy(proxy);
         readHeaders(method, requestInfo, classRequestInfo);
-        readHttpMethod(method, requestInfo,classRequestInfo);
+        readHttpMethod(method, requestInfo, classRequestInfo);
         if (Objects.isNull(requestInfo.getHttpMethod())) {
             if (Objects.isNull(classRequestInfo.getHttpMethod())) {
                 // 异常 fixme 这里的防御性检查可以放在HandleProxy的构造方法内
@@ -116,7 +116,7 @@ public class AnnotationAnalysis {
         if (Objects.nonNull(parameters) && parameters.length != 0) {
             readParameter(parameters, requestInfo);
         }
-        
+
         Class<?> returnType = method.getReturnType();
         if (Void.class.equals(returnType)) {
             // 异常
@@ -167,17 +167,17 @@ public class AnnotationAnalysis {
         for (int index = 0; index < parameters.length; index++) {
             Parameter parameter = parameters[index];
             Class<?> clazz = parameter.getType();
-            
-           if( Objects.equals(clazz, MultipartUpload.class)) {
-        	   List<Coordinate> coordinateList = clazzMap.get(Multipart.class);
-               if (Objects.isNull(coordinateList)) {
-                   coordinateList = new ArrayList<>();
-                   clazzMap.put(Multipart.class, coordinateList);
-               }
-               createCoordinate(coordinateList, null, index, null, null,null);
-        	   continue;
-           }
-            
+
+            if (Objects.equals(clazz, MultipartUpload.class)) {
+                List<Coordinate> coordinateList = clazzMap.get(Multipart.class);
+                if (Objects.isNull(coordinateList)) {
+                    coordinateList = new ArrayList<>();
+                    clazzMap.put(Multipart.class, coordinateList);
+                }
+                createCoordinate(coordinateList, null, index, null, null, null);
+                continue;
+            }
+
             Annotation[] annotations = parameter.getAnnotations();
             if (Objects.isNull(null) || annotations.length == 0) {
                 // 通过方法识别，get 默认是query，post默认是 body或者 field
@@ -194,39 +194,39 @@ public class AnnotationAnalysis {
                     clazzMap.put(dataClazz, coordinateList);
                 }
 
-                if(Objects.equals(dataClazz,Multipart.class)) {
-                	createCoordinate(coordinateList, null, index, type, null,annotation);
-                	continue;
+                if (Objects.equals(dataClazz, Multipart.class)) {
+                    createCoordinate(coordinateList, null, index, type, null, annotation);
+                    continue;
                 }
-                
+
                 String[] values = (String[]) DATA_ANNOTION_METHOD.get(dataClazz).invoke(annotation);
-                
+
                 if (Objects.equals(type, ParametersType.BASIC) || Objects.equals(type, ParametersType.PACKING)
                         || Objects.equals(type, ParametersType.STRING)) {
                     if (values.length == 0 || values.length > 1) {
                         // 异常
                     }
-                    createCoordinate(coordinateList, values[0], index, type, null,annotation);
+                    createCoordinate(coordinateList, values[0], index, type, null, annotation);
                     continue;
                 }
 
                 if (Objects.equals(type, ParametersType.MAP)) {
                     if (values.length == 0) {
-                        createCoordinate(coordinateList, null, index, type, null,annotation);
+                        createCoordinate(coordinateList, null, index, type, null, annotation);
                     } else {
                         for (String value : values) {
-                            createCoordinate(coordinateList, value, index, type, null,annotation);
+                            createCoordinate(coordinateList, value, index, type, null, annotation);
                         }
                     }
                     continue;
                 }
                 if (Objects.equals(type, ParametersType.OBJECT)) {
                     if (values.length == 0) {
-                        getCoordinateByClass(clazz, index, type, coordinateList,annotation);
+                        getCoordinateByClass(clazz, index, type, coordinateList, annotation);
                     } else {
                         for (String value : values) {
                             createCoordinate(coordinateList, value, index, ParametersType.OBJECT,
-                                    getMethod(value, clazz),annotation);
+                                    getMethod(value, clazz), annotation);
                         }
                     }
                 }
@@ -235,8 +235,8 @@ public class AnnotationAnalysis {
         }
         requestInfo.setHeaderList(clazzMap.get(Header.class));
         requestInfo.setPathList(clazzMap.get(Path.class));
-        if(requestInfo.getPathList() != null && requestInfo.getPathList().size() > 0) {
-        	
+        if (requestInfo.getPathList() != null && requestInfo.getPathList().size() > 0) {
+
         }
         requestInfo.setQueryList(clazzMap.get(Query.class));
         requestInfo.setFieldList(clazzMap.get(Field.class));
@@ -251,14 +251,14 @@ public class AnnotationAnalysis {
      * @throws InstantiationException
      * @throws IllegalAccessException
      */
-    private void readHttpMethod(AnnotatedElement annotatedElement, RequestInfo requestInfo,RequestInfo classRequestInfo)
+    private void readHttpMethod(AnnotatedElement annotatedElement, RequestInfo requestInfo, RequestInfo classRequestInfo)
             throws InstantiationException, IllegalAccessException {
         // 读取http方法
         POST post = annotatedElement.getAnnotation(POST.class);
         PUT put = annotatedElement.getAnnotation(PUT.class);
-        if (Objects.nonNull(post) || Objects.nonNull(put) ) {
-            requestInfo.setHttpMethod(Objects.isNull(put) ? HttpMethod.POST:HttpMethod.PUT);
-            requestInfo.setUrl(Objects.isNull(put) ?post.value() : put.value() );
+        if (Objects.nonNull(post) || Objects.nonNull(put)) {
+            requestInfo.setHttpMethod(Objects.isNull(put) ? HttpMethod.POST : HttpMethod.PUT);
+            requestInfo.setUrl(Objects.isNull(put) ? post.value() : put.value());
             //  请求数据是个类对象，需要进行序列化
             Body body = annotatedElement.getAnnotation(Body.class);
             if (Objects.nonNull(body)) {
@@ -280,7 +280,7 @@ public class AnnotationAnalysis {
             requestInfo.setUrl(get.value());
             return;
         }
-        
+
         HEAD head = annotatedElement.getAnnotation(HEAD.class);
         if (Objects.nonNull(head)) {
             requestInfo.setHttpMethod(HttpMethod.HEAD);
@@ -300,38 +300,38 @@ public class AnnotationAnalysis {
             requestInfo.setHttpMethod(HttpMethod.DELETE);
             requestInfo.setUrl(delete.value());
             return;
-        }        
-        
+        }
+
         OPTIONS options = annotatedElement.getAnnotation(OPTIONS.class);
         if (Objects.nonNull(options)) {
             requestInfo.setHttpMethod(HttpMethod.OPTIONS);
             requestInfo.setUrl(options.value());
             return;
-        }        
-        if( annotatedElement instanceof Method) {
-        	requestInfo.setHttpMethod(classRequestInfo.getHttpMethod());
-        	requestInfo.setUrl("/"+((Method)annotatedElement).getName());
-        	requestInfo.setIsBody(classRequestInfo.getIsBody());
-        	requestInfo.setSerialize(classRequestInfo.getSerialize());
+        }
+        if (annotatedElement instanceof Method) {
+            requestInfo.setHttpMethod(classRequestInfo.getHttpMethod());
+            requestInfo.setUrl("/" + ((Method) annotatedElement).getName());
+            requestInfo.setIsBody(classRequestInfo.getIsBody());
+            requestInfo.setSerialize(classRequestInfo.getSerialize());
         }
 
     }
 
     private static void getCoordinateByClass(Class<?> clazz, int index, ParametersType type,
-                                             List<Coordinate> coordinateList,Annotation annotation) {
+                                             List<Coordinate> coordinateList, Annotation annotation) {
 
         java.lang.reflect.Field[] fields = clazz.getFields();
         for (java.lang.reflect.Field field : fields) {
             String fieldName = field.getName();
             Method method = getMethod(fieldName, clazz);
             if (Objects.isNull(method)) {
-                createCoordinate(coordinateList, fieldName, index, type, method,annotation);
+                createCoordinate(coordinateList, fieldName, index, type, method, annotation);
             }
         }
     }
 
     private static Boolean createCoordinate(List<Coordinate> coordinateList, String key, int index, ParametersType type,
-                                            Method method,Annotation annotation) {
+                                            Method method, Annotation annotation) {
         Coordinate coordinate = new Coordinate();
         coordinate.setIndex(index);
         coordinate.setType(type);

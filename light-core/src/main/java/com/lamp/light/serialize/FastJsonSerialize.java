@@ -16,7 +16,7 @@ import java.lang.reflect.Type;
 import com.alibaba.fastjson.JSON;
 import com.lamp.light.api.serialize.Serialize;
 
-public class FastJsonSerialize implements Serialize{
+public class FastJsonSerialize implements Serialize {
 
     @Override
     public byte[] serialize(Object object) {
@@ -24,7 +24,7 @@ public class FastJsonSerialize implements Serialize{
     }
 
     @Override
-    public <T> T deserialization(Type t , byte[] data) {
+    public <T> T deserialization(Type t, byte[] data) {
         return JSON.parseObject(data, t);
     }
 

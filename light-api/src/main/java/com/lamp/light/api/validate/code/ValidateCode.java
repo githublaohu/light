@@ -2,6 +2,9 @@ package com.lamp.light.api.validate.code;
 
 public class ValidateCode {
 
+
+    private String name;
+
     /**
      * 那个系统
      */
@@ -52,6 +55,15 @@ public class ValidateCode {
 
     public void setObject(String object) {
         this.object = object;
+    }
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 }
 

@@ -23,7 +23,7 @@ public class Coordinate {
     private Method method;
 
     private ParametersType type;
-    
+
     private Annotation annotation;
 
     public int getIndex() {
@@ -57,19 +57,19 @@ public class Coordinate {
     public void setType(ParametersType type) {
         this.type = type;
     }
-    
+
     public Annotation getAnnotation() {
-		return annotation;
-	}
+        return annotation;
+    }
 
-	public void setAnnotation(Annotation annotation) {
-		this.annotation = annotation;
-	}
+    public void setAnnotation(Annotation annotation) {
+        this.annotation = annotation;
+    }
 
 
+    public enum ParametersType {
 
-	public enum ParametersType {
-
-        BASIC, PACKING, STRING, MAP, LIST, LIST_MAP, LIST_OBJECT, OBJECT, UPLOAD,UPLOAD_LIST,UPLOAD_MAP,;
+        BASIC, PACKING, STRING, MAP, LIST, LIST_MAP, LIST_OBJECT, OBJECT, UPLOAD, UPLOAD_LIST, UPLOAD_MAP,
+        ;
     }
 }

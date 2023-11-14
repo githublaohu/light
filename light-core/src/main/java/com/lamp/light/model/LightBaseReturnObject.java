@@ -14,10 +14,10 @@ package com.lamp.light.model;
 public class LightBaseReturnObject {
 
     private Boolean success = true;
-    
-    
+
+
     private Throwable throwable;
-   
+
 
     public Boolean getSuccess() {
         return success;

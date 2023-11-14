@@ -25,48 +25,50 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 
 public class ModelManage {
 
-	private static final InternalLogger logger = InternalLoggerFactory.getInstance(NettyClient.class);
+    private static final InternalLogger logger = InternalLoggerFactory.getInstance(NettyClient.class);
 
-	private static final ModelManage MANAGE = new ModelManage();
+    private static final ModelManage MANAGE = new ModelManage();
 
-	public static final ModelManage getInstance() {
-		return MANAGE;
-	}
+    public static final ModelManage getInstance() {
+        return MANAGE;
+    }
 
-	private ConcurrentHashMap<Type, Constructor<?>> constructorMap = new ConcurrentHashMap<>();
-	
-	private  ConcurrentHashMap<Type, Boolean> errerConstructorMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Type, Constructor<?>> constructorMap = new ConcurrentHashMap<>();
 
-	public ModelManage() {
-	};
+    private ConcurrentHashMap<Type, Boolean> errerConstructorMap = new ConcurrentHashMap<>();
 
-	public Object getModel(Type type, Throwable throwable, DefaultHttpResponse defaultHttpResponse, ByteBuf connect)  {
-		try {
-			Class<?> clazz = (Class<?>) type;
-			if (errerConstructorMap.containsKey(type)) {
-				return null;
-			}
-			if (!LightBaseReturnObject.class.isAssignableFrom(clazz)) {
-				errerConstructorMap.put(type,true);
-				return null;
-			}
-			Constructor<?> constructor = constructorMap.get(type);
-			if (Objects.isNull(constructor)) {
-				constructor = clazz.getConstructor(new Class[0]);
-				constructorMap.put(type, constructor);
-			}
-			Object object = constructor.newInstance();
-			if (object instanceof LightBaseReturnObject) {
-				LightBaseReturnObject LightBaseReturnObject = (LightBaseReturnObject) object;
-				LightBaseReturnObject.setSuccess(false);
-				LightBaseReturnObject.setThrowable(throwable);
-			}
-			return object;
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-			errerConstructorMap.put(type, true);
-			return null;
-		}
-	}
+    public ModelManage() {
+    }
+
+    ;
+
+    public Object getModel(Type type, Throwable throwable, DefaultHttpResponse defaultHttpResponse, ByteBuf connect) {
+        try {
+            Class<?> clazz = (Class<?>) type;
+            if (errerConstructorMap.containsKey(type)) {
+                return null;
+            }
+            if (!LightBaseReturnObject.class.isAssignableFrom(clazz)) {
+                errerConstructorMap.put(type, true);
+                return null;
+            }
+            Constructor<?> constructor = constructorMap.get(type);
+            if (Objects.isNull(constructor)) {
+                constructor = clazz.getConstructor(new Class[0]);
+                constructorMap.put(type, constructor);
+            }
+            Object object = constructor.newInstance();
+            if (object instanceof LightBaseReturnObject) {
+                LightBaseReturnObject LightBaseReturnObject = (LightBaseReturnObject) object;
+                LightBaseReturnObject.setSuccess(false);
+                LightBaseReturnObject.setThrowable(throwable);
+            }
+            return object;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            errerConstructorMap.put(type, true);
+            return null;
+        }
+    }
 
 }

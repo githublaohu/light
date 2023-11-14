@@ -2,6 +2,7 @@ package org.example.spring.mvc;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.web.bind.annotation.*;
 
 
@@ -72,7 +73,6 @@ public class InterfaceController {
     public ReturnObject putTest() {
         return createReturnObject("putTest");
     }
-
 
 
     @PostMapping("queryExample")
