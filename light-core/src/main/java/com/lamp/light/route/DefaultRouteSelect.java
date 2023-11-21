@@ -18,27 +18,27 @@ import com.lamp.light.api.route.RouteSelect;
 
 public class DefaultRouteSelect implements RouteSelect {
 
-	private DefaultLampInstance defaultLampInstance = new DefaultLampInstance();
+    private DefaultLampInstance defaultLampInstance = new DefaultLampInstance();
 
-	public DefaultRouteSelect(InetSocketAddress inetSocketAddress) {
-		defaultLampInstance.inetSocketAddress = inetSocketAddress;
-	}
+    public DefaultRouteSelect(InetSocketAddress inetSocketAddress) {
+        defaultLampInstance.inetSocketAddress = inetSocketAddress;
+    }
 
-	@Override
-	public LampInstance select(Object[] args, Class<?> clazz) {
+    @Override
+    public LampInstance select(Object[] args, Class<?> clazz) {
 
-		return defaultLampInstance;
-	}
+        return defaultLampInstance;
+    }
 
-	class DefaultLampInstance implements LampInstance {
+    class DefaultLampInstance implements LampInstance {
 
-		private InetSocketAddress inetSocketAddress;
+        private InetSocketAddress inetSocketAddress;
 
-		@Override
-		public InetSocketAddress getInetSocketAddress() {
+        @Override
+        public InetSocketAddress getInetSocketAddress() {
 
-			return this.inetSocketAddress;
-		}
+            return this.inetSocketAddress;
+        }
 
-	}
+    }
 }

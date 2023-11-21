@@ -37,199 +37,197 @@ import com.lamp.light.route.DefaultRouteSelect;
 import com.lamp.light.serialize.FastJsonSerialize;
 
 /**
- *  
  * @author laohu
- *
  */
 public class Light {
-	/**
-	 * ip address & port number
-	 */
-	private InetSocketAddress inetSocketAddress;
-	
-	private RouteSelect routeSelect;
+    /**
+     * ip address & port number
+     */
+    private InetSocketAddress inetSocketAddress;
 
-	private List<Interceptor> interceptorList;
+    private RouteSelect routeSelect;
 
-	private Serialize serialize;
+    private List<Interceptor> interceptorList;
 
-	private String path;
+    private Serialize serialize;
 
-	private Executor executor;
-	
-	private NettyClient nettyClient;
-	
-	private boolean isTLS = false; 
-	
-	private Map<String,String> contextData = new HashMap<>();
-	
-	
-	private void init() {
-		try {
-			nettyClient = new NettyClient(executor);
-		} catch (CertificateException | SSLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+    private String path;
 
-	/**
-	 * @param clazz the class that needs to be proxied
-	 * @param       <T> type
-	 * @return class
-	 * @throws Exception 未知
-	 */
-	public <T> T create(Class<?> clazz) throws Exception {
-		// check 其中create
-		validateServiceInterface(clazz);
-		// create
-		return create(clazz, null);
-	}
+    private Executor executor;
 
-	public <T> T create(Class<?> clazz, Object result) throws Exception {
-		return create(clazz, result, result);
-	}
+    private NettyClient nettyClient;
 
-	@SuppressWarnings("unchecked")
-	public <T> T create(Class<?> clazz, Object success, Object fail) throws Exception {
-		return (T) getObject(clazz, success, fail);
-	}
+    private boolean isTLS = false;
 
-	/**
-	 * check
-	 *
-	 * @param clazz
-	 */
-	private void validateServiceInterface(Class<?> clazz) {
-		if (Objects.isNull(clazz)) {
+    private Map<String, String> contextData = new HashMap<>();
 
-		}
-		if (!clazz.isInterface()) {
 
-		}
-	}
+    private void init() {
+        try {
+            nettyClient = new NettyClient(executor);
+        } catch (CertificateException | SSLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-	/**
-	 * get proxy instance
-	 *
-	 * @param clazz
-	 * @param success
-	 * @param fail
-	 * @return object
-	 * @throws Exception 未知
-	 */
-	private Object getObject(Class<?> clazz, Object success, Object fail) throws Exception {
-		// 创建执行逻辑代理类
-		HandlerProxy handleProxy =
-				// 真实执行
-				new HandlerProxy(nettyClient,path, clazz, routeSelect, interceptorList, serialize, success, fail);
-		handleProxy.setTSL(this.isTLS);
-		// 为当前 clazz 返回
-		return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[] { clazz }, handleProxy);
-	}
+    /**
+     * @param clazz the class that needs to be proxied
+     * @param <T>   type
+     * @return class
+     * @throws Exception 未知
+     */
+    public <T> T create(Class<?> clazz) throws Exception {
+        // check 其中create
+        validateServiceInterface(clazz);
+        // create
+        return create(clazz, null);
+    }
 
-	public static Builder Builder() {
-		return new Builder();
-	}
+    public <T> T create(Class<?> clazz, Object result) throws Exception {
+        return create(clazz, result, result);
+    }
 
-	public static class Builder {
-		@SuppressWarnings("unused")
-		private String scheme = "http1.1";
+    @SuppressWarnings("unchecked")
+    public <T> T create(Class<?> clazz, Object success, Object fail) throws Exception {
+        return (T) getObject(clazz, success, fail);
+    }
 
-		private String host;
-		
-		private boolean isTLS = false;
+    /**
+     * check
+     *
+     * @param clazz
+     */
+    private void validateServiceInterface(Class<?> clazz) {
+        if (Objects.isNull(clazz)) {
 
-		private int port = 80;
+        }
+        if (!clazz.isInterface()) {
 
-		private String path;
+        }
+    }
 
-		private Serialize serialize;
+    /**
+     * get proxy instance
+     *
+     * @param clazz
+     * @param success
+     * @param fail
+     * @return object
+     * @throws Exception 未知
+     */
+    private Object getObject(Class<?> clazz, Object success, Object fail) throws Exception {
+        // 创建执行逻辑代理类
+        HandlerProxy handleProxy =
+                // 真实执行
+                new HandlerProxy(nettyClient, path, clazz, routeSelect, interceptorList, serialize, success, fail);
+        handleProxy.setTSL(this.isTLS);
+        // 为当前 clazz 返回
+        return Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz}, handleProxy);
+    }
 
-		private List<Interceptor> interceptorList;
-		
-		private RouteSelect routeSelect;
+    public static Builder Builder() {
+        return new Builder();
+    }
 
-		private Executor executor;
-		
-		private Map<String,String> contextData;
+    public static class Builder {
+        @SuppressWarnings("unused")
+        private String scheme = "http1.1";
 
-		public Builder scheme(String scheme) {
-			this.scheme = scheme;
-			return this;
-		}
+        private String host;
 
-		public Builder host(String host) {
-			this.host = host;
-			return this;
-		}
+        private boolean isTLS = false;
 
-		public Builder port(int port) {
-			this.port = port;
-			return this;
-		}
+        private int port = 80;
 
-		public Builder path(String path) {
-			this.path = path;
-			return this;
-		}
+        private String path;
 
-		public Builder serialize(Serialize serialize) {
-			this.serialize = serialize;
-			return this;
-		}
-		
-		public Builder routeSelect(RouteSelect routeSelect) {
-			this.routeSelect = routeSelect;
-			return this;
-		}
-		
-		public Builder tls(boolean tls) {
-			this.isTLS = tls;
-			return this;
-		}
+        private Serialize serialize;
 
-		public Builder interceptor(Interceptor interceptor) {
-			if (this.interceptorList == null) {
-				interceptorList = new ArrayList<Interceptor>();
-			}
-			this.interceptorList.add(interceptor);
-			return this;
-		}
+        private List<Interceptor> interceptorList;
 
-		public Light build() {
-			Light light = new Light();
+        private RouteSelect routeSelect;
 
-			if (Objects.isNull(host) && "".equals(host)) {
+        private Executor executor;
 
-			}
+        private Map<String, String> contextData;
 
-			if (Objects.isNull(serialize)) {
-				this.serialize = new FastJsonSerialize();
-			}
-			if(Objects.isNull(routeSelect)) {
-				light.inetSocketAddress = new InetSocketAddress(host, port);
-				this.routeSelect = new DefaultRouteSelect(light.inetSocketAddress);
-			}
-			light.routeSelect = routeSelect;
-			light.serialize = serialize;
-			light.interceptorList = interceptorList;
-			if (Objects.isNull(this.executor)) {
-				executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
-						Runtime.getRuntime().availableProcessors(), 0L, TimeUnit.MILLISECONDS,
-						new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
-							AtomicInteger atomicInteger = new AtomicInteger();
+        public Builder scheme(String scheme) {
+            this.scheme = scheme;
+            return this;
+        }
 
-							@Override
-							public Thread newThread(Runnable r) {
-								return new Thread(r,"ligth-asyn-" + atomicInteger.incrementAndGet());
-							}
-						});
-			}
-			light.path = path;
-			light.executor = executor;
-			light.isTLS = isTLS;
-			light.init();
-			return light;
-		}
-	}
+        public Builder host(String host) {
+            this.host = host;
+            return this;
+        }
+
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        public Builder path(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder serialize(Serialize serialize) {
+            this.serialize = serialize;
+            return this;
+        }
+
+        public Builder routeSelect(RouteSelect routeSelect) {
+            this.routeSelect = routeSelect;
+            return this;
+        }
+
+        public Builder tls(boolean tls) {
+            this.isTLS = tls;
+            return this;
+        }
+
+        public Builder interceptor(Interceptor interceptor) {
+            if (this.interceptorList == null) {
+                interceptorList = new ArrayList<Interceptor>();
+            }
+            this.interceptorList.add(interceptor);
+            return this;
+        }
+
+        public Light build() {
+            Light light = new Light();
+
+            if (Objects.isNull(host) && "".equals(host)) {
+
+            }
+
+            if (Objects.isNull(serialize)) {
+                this.serialize = new FastJsonSerialize();
+            }
+            if (Objects.isNull(routeSelect)) {
+                light.inetSocketAddress = new InetSocketAddress(host, port);
+                this.routeSelect = new DefaultRouteSelect(light.inetSocketAddress);
+            }
+            light.routeSelect = routeSelect;
+            light.serialize = serialize;
+            light.interceptorList = interceptorList;
+            if (Objects.isNull(this.executor)) {
+                executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(),
+                        Runtime.getRuntime().availableProcessors(), 0L, TimeUnit.MILLISECONDS,
+                        new LinkedBlockingQueue<Runnable>(), new ThreadFactory() {
+                    AtomicInteger atomicInteger = new AtomicInteger();
+
+                    @Override
+                    public Thread newThread(Runnable r) {
+                        return new Thread(r, "ligth-asyn-" + atomicInteger.incrementAndGet());
+                    }
+                });
+            }
+            light.path = path;
+            light.executor = executor;
+            light.isTLS = isTLS;
+            light.init();
+            return light;
+        }
+    }
 }

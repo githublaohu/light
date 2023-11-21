@@ -28,10 +28,10 @@ public interface TestInterface {
     ReturnObject testHeaders();
 
     @GET("/testPath/{key}/{value}/{path}")
-    ReturnObject testPath(@Path({"key","value"}) ReturnObject returnObject,@Path("path") String path);
+    ReturnObject testPath(@Path({"key", "value"}) ReturnObject returnObject, @Path("path") String path);
 
     @GET("/testQuery")
-    ReturnObject testQuery(@Query({"key","value"}) ReturnObject returnObject,@Query("path") String path);
+    ReturnObject testQuery(@Query({"key", "value"}) ReturnObject returnObject, @Query("path") String path);
 
 
     @DELETE("/deleteTest")

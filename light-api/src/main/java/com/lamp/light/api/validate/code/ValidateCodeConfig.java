@@ -1,8 +1,10 @@
 package com.lamp.light.api.validate.code;
 
-public class ValidateCodeConfig extends  ValidateCode{
+public class ValidateCodeConfig extends ValidateCode {
 
-    private long  effectiveTime;
+    private String cacheName;
+
+    private long effectiveTime;
 
     private boolean persistence;
 
@@ -13,7 +15,6 @@ public class ValidateCodeConfig extends  ValidateCode{
      */
     private RandomEnum type;
 
-    private int length;
 
     private boolean uniqueness;
 
@@ -42,13 +43,6 @@ public class ValidateCodeConfig extends  ValidateCode{
         this.type = type;
     }
 
-    public int getLength() {
-        return length;
-    }
-
-    public void setLength(int length) {
-        this.length = length;
-    }
 
     public boolean isUniqueness() {
         return uniqueness;
@@ -56,5 +50,13 @@ public class ValidateCodeConfig extends  ValidateCode{
 
     public void setUniqueness(boolean uniqueness) {
         this.uniqueness = uniqueness;
+    }
+
+    public String getCacheName() {
+        return cacheName;
+    }
+
+    public void setCacheName(String cacheName) {
+        this.cacheName = cacheName;
     }
 }

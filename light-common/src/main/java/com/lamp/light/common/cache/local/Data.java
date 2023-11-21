@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface Data<T> {
 
-    public default int install(List<T> data){
+    public default int install(List<T> data) {
         data.forEach(this::install);
         return 1;
     }

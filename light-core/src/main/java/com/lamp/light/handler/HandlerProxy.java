@@ -59,374 +59,374 @@ import io.netty.handler.codec.http.multipart.HttpPostRequestEncoder.ErrorDataEnc
 
 public class HandlerProxy implements InvocationHandler {
 
-	private AnnotationAnalysis annotationAnalysis = new AnnotationAnalysis();
+    private AnnotationAnalysis annotationAnalysis = new AnnotationAnalysis();
 
-	private Map<Method, HandleMethod> handleMethodMap = new ConcurrentHashMap<>();
+    private Map<Method, HandleMethod> handleMethodMap = new ConcurrentHashMap<>();
 
-	// http1.1支持
-	private NettyClient nettyClient;
+    // http1.1支持
+    private NettyClient nettyClient;
 
-	private Class<?> proxy;
+    private Class<?> proxy;
 
-	private RouteSelect routeSelect;
+    private RouteSelect routeSelect;
 
-	private String socketAddress;
+    private String socketAddress;
 
-	private List<Interceptor> interceptorList = new ArrayList<>();
+    private List<Interceptor> interceptorList = new ArrayList<>();
 
-	private RequestInfo requestInfo;
+    private RequestInfo requestInfo;
 
-	private Serialize serialize;
+    private Serialize serialize;
 
-	private Object success;
+    private Object success;
 
-	private Object fail;
+    private Object fail;
 
-	private boolean TLS;
+    private boolean TLS;
 
-	public HandlerProxy(NettyClient nettyClient, String path, Class<?> proxy, RouteSelect routeSelect,
-			List<Interceptor> interceptorList, Serialize serialize, Object success, Object fail) throws Exception {
-		this.nettyClient = nettyClient;
-		if (Objects.isNull(success) || Objects.isNull(fail)) {
+    public HandlerProxy(NettyClient nettyClient, String path, Class<?> proxy, RouteSelect routeSelect,
+                        List<Interceptor> interceptorList, Serialize serialize, Object success, Object fail) throws Exception {
+        this.nettyClient = nettyClient;
+        if (Objects.isNull(success) || Objects.isNull(fail)) {
 
-		}
-		this.proxy = proxy;
-		// 根据当前clazz解析请求数据
-		this.requestInfo = annotationAnalysis.analysis(proxy);
-		// 在 annotationAnalysis.analysis(proxy) 方法中已拿到了 url 这里进行二次计算
-		this.requestInfo.setUrl(BaseUtils.setSlash(path) + BaseUtils.setSlash(requestInfo.getUrl()));
-		this.interceptorList = interceptorList;
-		this.serialize = serialize;
-		this.routeSelect = routeSelect;
-		this.success = success;
-		this.fail = fail;
-		if (DefaultRouteSelect.class.equals(routeSelect.getClass())) {
-			LampInstance lampInstance = routeSelect.select(null, this.proxy);
-			InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
-			this.socketAddress = inetSocketAddress.toString();
-			this.socketAddress = socketAddress.substring(1, socketAddress.length());
-		}
-	}
+        }
+        this.proxy = proxy;
+        // 根据当前clazz解析请求数据
+        this.requestInfo = annotationAnalysis.analysis(proxy);
+        // 在 annotationAnalysis.analysis(proxy) 方法中已拿到了 url 这里进行二次计算
+        this.requestInfo.setUrl(BaseUtils.setSlash(path) + BaseUtils.setSlash(requestInfo.getUrl()));
+        this.interceptorList = interceptorList;
+        this.serialize = serialize;
+        this.routeSelect = routeSelect;
+        this.success = success;
+        this.fail = fail;
+        if (DefaultRouteSelect.class.equals(routeSelect.getClass())) {
+            LampInstance lampInstance = routeSelect.select(null, this.proxy);
+            InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
+            this.socketAddress = inetSocketAddress.toString();
+            this.socketAddress = socketAddress.substring(1, socketAddress.length());
+        }
+    }
 
-	public void setTSL(boolean tsl) {
-		this.TLS = tsl;
-	}
+    public void setTSL(boolean tsl) {
+        this.TLS = tsl;
+    }
 
-	@Override
-	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-		if (method.getDeclaringClass() == Object.class) {
-			return method.invoke(this, args);
-		}
-		// 以下没有method.invoke
-		HandleMethod handleMethod = handleMethodMap.get(method);
-		if (Objects.isNull(handleMethod)) {
-			handleMethod = new HandleMethod();
-			handleMethod.requestInfo = annotationAnalysis.analysis(proxy, method, this.requestInfo);
-			if (Objects.nonNull(handleMethod.requestInfo.getPathList())) {
-				handleMethod.requestInfo.setStringReplace(new StringReplace(handleMethod.requestInfo.getUrl()));
-			}
-			if (Objects.nonNull(success)) {
-				handleMethod.success = success;
-				handleMethod.fail = fail;
-				handleMethod.returnMode = ReturnMode.ASYSN;
-				handleMethod.method = method;
-				handleMethod.requestInfo.setTls(this.TLS);
-			}
-			handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
-			handleMethodMap.put(method, handleMethod);
-		}
-		if (routeSelect instanceof BroadcastRouteSelect) {
-			List<Object> resultList = new ArrayList<>();
-			List<LampInstance> lampInstanceList = ((BroadcastRouteSelect) routeSelect).selects(args, this.proxy);
-			for (LampInstance instance : lampInstanceList) {
-				Object object = this.execute(instance.getInetSocketAddress(), handleMethod, method, args);
-				resultList.add(object);
-			}
-			return (Object) resultList;
-		}
-		LampInstance lampInstance = routeSelect.select(args, this.proxy);
-		InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
-		return this.execute(inetSocketAddress, handleMethod, method, args);
-	}
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        if (method.getDeclaringClass() == Object.class) {
+            return method.invoke(this, args);
+        }
+        // 以下没有method.invoke
+        HandleMethod handleMethod = handleMethodMap.get(method);
+        if (Objects.isNull(handleMethod)) {
+            handleMethod = new HandleMethod();
+            handleMethod.requestInfo = annotationAnalysis.analysis(proxy, method, this.requestInfo);
+            if (Objects.nonNull(handleMethod.requestInfo.getPathList())) {
+                handleMethod.requestInfo.setStringReplace(new StringReplace(handleMethod.requestInfo.getUrl()));
+            }
+            if (Objects.nonNull(success)) {
+                handleMethod.success = success;
+                handleMethod.fail = fail;
+                handleMethod.returnMode = ReturnMode.ASYSN;
+                handleMethod.method = method;
+                handleMethod.requestInfo.setTls(this.TLS);
+            }
+            handleMethod.returnMode = handleMethod.requestInfo.getReturnMode();
+            handleMethodMap.put(method, handleMethod);
+        }
+        if (routeSelect instanceof BroadcastRouteSelect) {
+            List<Object> resultList = new ArrayList<>();
+            List<LampInstance> lampInstanceList = ((BroadcastRouteSelect) routeSelect).selects(args, this.proxy);
+            for (LampInstance instance : lampInstanceList) {
+                Object object = this.execute(instance.getInetSocketAddress(), handleMethod, method, args);
+                resultList.add(object);
+            }
+            return (Object) resultList;
+        }
+        LampInstance lampInstance = routeSelect.select(args, this.proxy);
+        InetSocketAddress inetSocketAddress = lampInstance.getInetSocketAddress();
+        return this.execute(inetSocketAddress, handleMethod, method, args);
+    }
 
-	private Object execute(InetSocketAddress inetSocketAddress, HandleMethod handleMethod, Method method, Object[] args)
-			throws Throwable {
-		RequestInfo requestInfo = handleMethod.requestInfo;
-		if (Objects.nonNull(interceptorList)) {
-			for (Interceptor interceptor : interceptorList) {
-				args = interceptor.handlerBefore(requestInfo.requestWrapper(), args);
-			}
-		}
-		HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod, inetSocketAddress);
-		if (Objects.nonNull(interceptorList)) {
-			for (Interceptor interceptor : interceptorList) {
-				defaultFullHttpRequest = interceptor.handlerRequest(requestInfo.requestWrapper(),
-						defaultFullHttpRequest);
-			}
-		}
-		AsyncReturn asynReturn = new AsyncReturn();
-		asynReturn.returnMode(handleMethod.returnMode);
-		asynReturn.fullHttpRequest(defaultFullHttpRequest);
-		asynReturn.handleMethod(handleMethod);
-		asynReturn.serialize(serialize);
-		asynReturn.interceptorList(interceptorList);
+    private Object execute(InetSocketAddress inetSocketAddress, HandleMethod handleMethod, Method method, Object[] args)
+            throws Throwable {
+        RequestInfo requestInfo = handleMethod.requestInfo;
+        if (Objects.nonNull(interceptorList)) {
+            for (Interceptor interceptor : interceptorList) {
+                args = interceptor.handlerBefore(requestInfo.requestWrapper(), args);
+            }
+        }
+        HttpRequest defaultFullHttpRequest = getHttpRequest(args, handleMethod, inetSocketAddress);
+        if (Objects.nonNull(interceptorList)) {
+            for (Interceptor interceptor : interceptorList) {
+                defaultFullHttpRequest = interceptor.handlerRequest(requestInfo.requestWrapper(),
+                        defaultFullHttpRequest);
+            }
+        }
+        AsyncReturn asynReturn = new AsyncReturn();
+        asynReturn.returnMode(handleMethod.returnMode);
+        asynReturn.fullHttpRequest(defaultFullHttpRequest);
+        asynReturn.handleMethod(handleMethod);
+        asynReturn.serialize(serialize);
+        asynReturn.interceptorList(interceptorList);
 
-		if (Objects.nonNull(this.success)) {
-			asynReturn.returnMode(ReturnMode.ASYSN);
-			asynReturn.lightContext(LightContext.lightContext());
-			asynReturn.args(args);
-			LightContext.remove();
-		}
+        if (Objects.nonNull(this.success)) {
+            asynReturn.returnMode(ReturnMode.ASYSN);
+            asynReturn.lightContext(LightContext.lightContext());
+            asynReturn.args(args);
+            LightContext.remove();
+        }
 
-		nettyClient.write(asynReturn, inetSocketAddress);
-		Object object = null;
-		if (handleMethod.returnMode == ReturnMode.SYNS) {
-			object = asynReturn.getObject();
-		} else if (handleMethod.returnMode == ReturnMode.CALL) {
-			asynReturn.call(new DefaultCall<>(asynReturn, nettyClient, inetSocketAddress));
-			object = asynReturn.call();
-		}
-		return object;
-	}
+        nettyClient.write(asynReturn, inetSocketAddress);
+        Object object = null;
+        if (handleMethod.returnMode == ReturnMode.SYNS) {
+            object = asynReturn.getObject();
+        } else if (handleMethod.returnMode == ReturnMode.CALL) {
+            asynReturn.call(new DefaultCall<>(asynReturn, nettyClient, inetSocketAddress));
+            object = asynReturn.call();
+        }
+        return object;
+    }
 
-	public HttpRequest getHttpRequest(Object[] args, HandleMethod handleMethod, InetSocketAddress inetSocketAddress)
-			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
-			ErrorDataEncoderException {
-		if (Objects.nonNull(args) && Objects.equals(SimpleCloudImplementObject.class, args[0])) {
-			return createHttpRequest((SimpleCloudImplementObject)args[0]);
-		}
-		
-		CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
-		RequestInfo requestInfo = handleMethod.requestInfo;
-		String url = requestInfo.getUrl();
-		// path
-		if (Objects.nonNull(requestInfo.getPathList())) {
-			Map<String, String> pathMap = new HashMap<>();
-			coordinateHandlerWrapper.pathCoordinateHandler.setObject(pathMap);
-			coordinateHandler(args, requestInfo.getPathList(), coordinateHandlerWrapper.pathCoordinateHandler);
-			url = handleMethod.requestInfo.getStringReplace().replace(pathMap);
-		}
-		// query
-		QueryStringEncoder queryStringEncoder = new QueryStringEncoder(url);
-		if (Objects.nonNull(requestInfo.getQueryList())) {
-			coordinateHandlerWrapper.queryCoordinateHandler.setObject(queryStringEncoder);
-			coordinateHandler(args, requestInfo.getQueryList(), coordinateHandlerWrapper.queryCoordinateHandler);
-		}
-		// header
-		HttpHeaders httpHeaders = new DefaultHttpHeaders();
-		Set<Entry<String, String>> it = requestInfo.getHeader().entrySet();
-		for (Entry<String, String> e : it) {
-			httpHeaders.add(e.getKey(), e.getValue());
-		}
-		if (Objects.nonNull(requestInfo.getHeaderList())) {
-			coordinateHandlerWrapper.headerCoordinateHandler.setObject(httpHeaders);
-			coordinateHandler(args, requestInfo.getHeaderList(), coordinateHandlerWrapper.headerCoordinateHandler);
-		}
+    public HttpRequest getHttpRequest(Object[] args, HandleMethod handleMethod, InetSocketAddress inetSocketAddress)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException,
+            ErrorDataEncoderException {
+        if (Objects.nonNull(args) && Objects.equals(SimpleCloudImplementObject.class, args[0])) {
+            return createHttpRequest((SimpleCloudImplementObject) args[0]);
+        }
 
-		// cookie
-		if (Objects.nonNull(requestInfo.getCookieList())) {
-			coordinateHandler(args, requestInfo.getCookieList(), coordinateHandlerWrapper.headerCoordinateHandler);
-		}
+        CoordinateHandlerWrapper coordinateHandlerWrapper = CoordinateHandler.getCoordinateHandlerWrapper();
+        RequestInfo requestInfo = handleMethod.requestInfo;
+        String url = requestInfo.getUrl();
+        // path
+        if (Objects.nonNull(requestInfo.getPathList())) {
+            Map<String, String> pathMap = new HashMap<>();
+            coordinateHandlerWrapper.pathCoordinateHandler.setObject(pathMap);
+            coordinateHandler(args, requestInfo.getPathList(), coordinateHandlerWrapper.pathCoordinateHandler);
+            url = handleMethod.requestInfo.getStringReplace().replace(pathMap);
+        }
+        // query
+        QueryStringEncoder queryStringEncoder = new QueryStringEncoder(url);
+        if (Objects.nonNull(requestInfo.getQueryList())) {
+            coordinateHandlerWrapper.queryCoordinateHandler.setObject(queryStringEncoder);
+            coordinateHandler(args, requestInfo.getQueryList(), coordinateHandlerWrapper.queryCoordinateHandler);
+        }
+        // header
+        HttpHeaders httpHeaders = new DefaultHttpHeaders();
+        Set<Entry<String, String>> it = requestInfo.getHeader().entrySet();
+        for (Entry<String, String> e : it) {
+            httpHeaders.add(e.getKey(), e.getValue());
+        }
+        if (Objects.nonNull(requestInfo.getHeaderList())) {
+            coordinateHandlerWrapper.headerCoordinateHandler.setObject(httpHeaders);
+            coordinateHandler(args, requestInfo.getHeaderList(), coordinateHandlerWrapper.headerCoordinateHandler);
+        }
 
-		// HttpPostRequestEncoder 用于post请求
-		ByteBuf buffer = Unpooled.EMPTY_BUFFER;
-		if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod())
-				|| Objects.equals(HttpMethod.PUT, handleMethod.requestInfo.getHttpMethod())) {
-			if (requestInfo.getIsBody()) {
-				// body 协议 httpHeaders
-				byte[] bytes = serialize.serialize(args[requestInfo.getBodyIndex()]);
-				buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
-				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-				httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
-			} else {
-				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
-			}
-		}
+        // cookie
+        if (Objects.nonNull(requestInfo.getCookieList())) {
+            coordinateHandler(args, requestInfo.getCookieList(), coordinateHandlerWrapper.headerCoordinateHandler);
+        }
 
-		if (LightConstant.PROTOCOL_HTTP_11.equals(handleMethod.getRequestInfo().getProtocol())) {
-			httpHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-		}
+        // HttpPostRequestEncoder 用于post请求
+        ByteBuf buffer = Unpooled.EMPTY_BUFFER;
+        if (Objects.equals(HttpMethod.POST, handleMethod.requestInfo.getHttpMethod())
+                || Objects.equals(HttpMethod.PUT, handleMethod.requestInfo.getHttpMethod())) {
+            if (requestInfo.getIsBody()) {
+                // body 协议 httpHeaders
+                byte[] bytes = serialize.serialize(args[requestInfo.getBodyIndex()]);
+                buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
+                httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+                httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
+            } else {
+                httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
+            }
+        }
 
-		httpHeaders.set(HttpHeaderNames.HOST, this.getHttpHeaderByHost(inetSocketAddress));
-		// ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
-		HttpRequest defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
-				requestInfo.getHttpMethod(), queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
-		if (Objects.nonNull(requestInfo.getFieldList()) || Objects.nonNull(requestInfo.getMultipartList())) {
-			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest,
-					Objects.nonNull(requestInfo.getMultipartList()));
-			if (Objects.nonNull(requestInfo.getFieldList())) {
-				coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
-				coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
-			}
-			if (Objects.nonNull(requestInfo.getMultipartList())) {
-				coordinateHandlerWrapper.uploadCoordinateHandler.setObject(httpPostRequestEncoder);
-				coordinateHandler(args, requestInfo.getMultipartList(),
-						coordinateHandlerWrapper.uploadCoordinateHandler);
-			}
-			defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
-		}
-		return defaultFullHttpRequest;
-	}
+        if (LightConstant.PROTOCOL_HTTP_11.equals(handleMethod.getRequestInfo().getProtocol())) {
+            httpHeaders.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+        }
 
-	private HttpRequest createHttpRequest(SimpleCloudImplementObject simpleCloudImplementObject)
-			throws ErrorDataEncoderException {
-		QueryStringEncoder queryStringEncoder = new QueryStringEncoder(simpleCloudImplementObject.getPath());
-		if (Objects.nonNull(simpleCloudImplementObject.getQuerys())) {
-			for (Entry<String, String> entry : simpleCloudImplementObject.getQuerys().entrySet()) {
-				queryStringEncoder.addParam(entry.getKey(), entry.getValue());
-			}
-		}
-		HttpHeaders httpHeaders = new DefaultHttpHeaders();
-		if (Objects.nonNull(simpleCloudImplementObject.getHeader())) {
-			for (Entry<String, String> entry : simpleCloudImplementObject.getHeader().entrySet()) {
-				httpHeaders.add(entry.getKey(), entry.getValue());
-			}
-		}
-		ByteBuf buffer = Unpooled.EMPTY_BUFFER;
-		if (Objects.equals(HttpMethod.POST.toString(), simpleCloudImplementObject.getHttpMethod())
-				|| Objects.equals(HttpMethod.PUT.toString(), simpleCloudImplementObject.getHttpMethod())) {
-			if (simpleCloudImplementObject.isJson()) {
-				// body 协议 httpHeaders
-				byte[] bytes = serialize.serialize(simpleCloudImplementObject.getBody());
-				buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
-				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-				httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
-			} else {
-				httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
-			}
-		}
-		HttpRequest defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
-				HttpMethod.valueOf(simpleCloudImplementObject.getHttpMethod()), queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
-		if (Objects.nonNull(simpleCloudImplementObject.getForm())) {
-			HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
-			defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
-		}
-		return defaultFullHttpRequest;
-	}
+        httpHeaders.set(HttpHeaderNames.HOST, this.getHttpHeaderByHost(inetSocketAddress));
+        // ClientCookieEncoder clientCookieEncoder = ClientCookieEncoder.STRICT;
+        HttpRequest defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
+                requestInfo.getHttpMethod(), queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
+        if (Objects.nonNull(requestInfo.getFieldList()) || Objects.nonNull(requestInfo.getMultipartList())) {
+            HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest,
+                    Objects.nonNull(requestInfo.getMultipartList()));
+            if (Objects.nonNull(requestInfo.getFieldList())) {
+                coordinateHandlerWrapper.fieldCoordinateHandler.setObject(httpPostRequestEncoder);
+                coordinateHandler(args, requestInfo.getFieldList(), coordinateHandlerWrapper.fieldCoordinateHandler);
+            }
+            if (Objects.nonNull(requestInfo.getMultipartList())) {
+                coordinateHandlerWrapper.uploadCoordinateHandler.setObject(httpPostRequestEncoder);
+                coordinateHandler(args, requestInfo.getMultipartList(),
+                        coordinateHandlerWrapper.uploadCoordinateHandler);
+            }
+            defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
+        }
+        return defaultFullHttpRequest;
+    }
 
-	private String getHttpHeaderByHost(InetSocketAddress inetSocketAddress) {
-		if (Objects.isNull(this.socketAddress)) {
-			String socketAddress = inetSocketAddress.toString();
-			return socketAddress.substring(1, socketAddress.length());
-		} else {
-			return this.socketAddress;
-		}
-	}
+    private HttpRequest createHttpRequest(SimpleCloudImplementObject simpleCloudImplementObject)
+            throws ErrorDataEncoderException {
+        QueryStringEncoder queryStringEncoder = new QueryStringEncoder(simpleCloudImplementObject.getPath());
+        if (Objects.nonNull(simpleCloudImplementObject.getQuerys())) {
+            for (Entry<String, String> entry : simpleCloudImplementObject.getQuerys().entrySet()) {
+                queryStringEncoder.addParam(entry.getKey(), entry.getValue());
+            }
+        }
+        HttpHeaders httpHeaders = new DefaultHttpHeaders();
+        if (Objects.nonNull(simpleCloudImplementObject.getHeader())) {
+            for (Entry<String, String> entry : simpleCloudImplementObject.getHeader().entrySet()) {
+                httpHeaders.add(entry.getKey(), entry.getValue());
+            }
+        }
+        ByteBuf buffer = Unpooled.EMPTY_BUFFER;
+        if (Objects.equals(HttpMethod.POST.toString(), simpleCloudImplementObject.getHttpMethod())
+                || Objects.equals(HttpMethod.PUT.toString(), simpleCloudImplementObject.getHttpMethod())) {
+            if (simpleCloudImplementObject.isJson()) {
+                // body 协议 httpHeaders
+                byte[] bytes = serialize.serialize(simpleCloudImplementObject.getBody());
+                buffer = Unpooled.directBuffer(bytes.length).writeBytes(bytes);
+                httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
+                httpHeaders.set(HttpHeaderNames.CONTENT_LENGTH, bytes.length);
+            } else {
+                httpHeaders.set(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED);
+            }
+        }
+        HttpRequest defaultFullHttpRequest = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1,
+                HttpMethod.valueOf(simpleCloudImplementObject.getHttpMethod()), queryStringEncoder.toString(), buffer, httpHeaders, httpHeaders);
+        if (Objects.nonNull(simpleCloudImplementObject.getForm())) {
+            HttpPostRequestEncoder httpPostRequestEncoder = new HttpPostRequestEncoder(defaultFullHttpRequest, false);
+            defaultFullHttpRequest = httpPostRequestEncoder.finalizeRequest();
+        }
+        return defaultFullHttpRequest;
+    }
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void coordinateHandler(Object[] args, List<Coordinate> coordinateList, CoordinateHandler coordinateHandler)
-			throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
-		// 要支持form的list
-		for (Coordinate coordinate : coordinateList) {
-			coordinateHandler.setCoordinate(coordinate);
-			Object object = args[coordinate.getIndex()];
-			if (Objects.equals(coordinate.getType(), ParametersType.BASIC)
-					|| Objects.equals(coordinate.getType(), ParametersType.PACKING)) {
-				coordinateHandler.handler(coordinate.getKey(), object.toString());
-			} else if (Objects.equals(coordinate.getType(), ParametersType.STRING)) {
-				coordinateHandler.handler(coordinate.getKey(), (String) object);
-			} else if (Objects.equals(coordinate.getType(), ParametersType.MAP)) {
-				Map<String, Object> map = (Map<String, Object>) object;
-				if (Objects.isNull(coordinate.getKey())) {
-					for (Entry<String, Object> e : map.entrySet()) {
-						coordinateHandler.handler(e.getKey(), TypeToString.ObjectToString(e.getValue()));
-					}
-				} else {
-					coordinateHandler.handler(coordinate.getKey(),
-							TypeToString.ObjectToString(map.get(coordinate.getKey())));
-				}
-			} else if (Objects.equals(coordinate.getType(), ParametersType.OBJECT)) {
-				if (coordinate.getAnnotation().annotationType().equals(Multipart.class)) {
-					coordinateHandler.handler(null, object);
-				} else {
-					coordinateHandler.handler(coordinate.getKey(),
-							TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
-				}
-			}
-		}
-		coordinateHandler.clean();
-	}
+    private String getHttpHeaderByHost(InetSocketAddress inetSocketAddress) {
+        if (Objects.isNull(this.socketAddress)) {
+            String socketAddress = inetSocketAddress.toString();
+            return socketAddress.substring(1, socketAddress.length());
+        } else {
+            return this.socketAddress;
+        }
+    }
 
-	public static class HandleMethod {
-		private RequestInfo requestInfo;
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private void coordinateHandler(Object[] args, List<Coordinate> coordinateList, CoordinateHandler coordinateHandler)
+            throws IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        // 要支持form的list
+        for (Coordinate coordinate : coordinateList) {
+            coordinateHandler.setCoordinate(coordinate);
+            Object object = args[coordinate.getIndex()];
+            if (Objects.equals(coordinate.getType(), ParametersType.BASIC)
+                    || Objects.equals(coordinate.getType(), ParametersType.PACKING)) {
+                coordinateHandler.handler(coordinate.getKey(), object.toString());
+            } else if (Objects.equals(coordinate.getType(), ParametersType.STRING)) {
+                coordinateHandler.handler(coordinate.getKey(), (String) object);
+            } else if (Objects.equals(coordinate.getType(), ParametersType.MAP)) {
+                Map<String, Object> map = (Map<String, Object>) object;
+                if (Objects.isNull(coordinate.getKey())) {
+                    for (Entry<String, Object> e : map.entrySet()) {
+                        coordinateHandler.handler(e.getKey(), TypeToString.ObjectToString(e.getValue()));
+                    }
+                } else {
+                    coordinateHandler.handler(coordinate.getKey(),
+                            TypeToString.ObjectToString(map.get(coordinate.getKey())));
+                }
+            } else if (Objects.equals(coordinate.getType(), ParametersType.OBJECT)) {
+                if (coordinate.getAnnotation().annotationType().equals(Multipart.class)) {
+                    coordinateHandler.handler(null, object);
+                } else {
+                    coordinateHandler.handler(coordinate.getKey(),
+                            TypeToString.ObjectToString(coordinate.getMethod().invoke(object)));
+                }
+            }
+        }
+        coordinateHandler.clean();
+    }
 
-		private Method method;
+    public static class HandleMethod {
+        private RequestInfo requestInfo;
 
-		private Serialize serialize;
+        private Method method;
 
-		private Integer requestTimes = 30000;
+        private Serialize serialize;
 
-		private Object success;
+        private Integer requestTimes = 30000;
 
-		private Object fail;
+        private Object success;
 
-		private ReturnMode returnMode;
+        private Object fail;
 
-		private boolean isSecurity = false;
+        private ReturnMode returnMode;
 
-		public RequestInfo getRequestInfo() {
-			return requestInfo;
-		}
+        private boolean isSecurity = false;
 
-		public void setRequestInfo(RequestInfo requestInfo) {
-			this.requestInfo = requestInfo;
-		}
+        public RequestInfo getRequestInfo() {
+            return requestInfo;
+        }
 
-		public Method getMethod() {
-			return method;
-		}
+        public void setRequestInfo(RequestInfo requestInfo) {
+            this.requestInfo = requestInfo;
+        }
 
-		public void setMethod(Method method) {
-			this.method = method;
-		}
+        public Method getMethod() {
+            return method;
+        }
 
-		public Serialize getSerialize() {
-			return serialize;
-		}
+        public void setMethod(Method method) {
+            this.method = method;
+        }
 
-		public void setSerialize(Serialize serialize) {
-			this.serialize = serialize;
-		}
+        public Serialize getSerialize() {
+            return serialize;
+        }
 
-		public Integer getRequestTimes() {
-			return requestTimes;
-		}
+        public void setSerialize(Serialize serialize) {
+            this.serialize = serialize;
+        }
 
-		public void setRequestTimes(Integer requestTimes) {
-			this.requestTimes = requestTimes;
-		}
+        public Integer getRequestTimes() {
+            return requestTimes;
+        }
 
-		public Object getSuccess() {
-			return success;
-		}
+        public void setRequestTimes(Integer requestTimes) {
+            this.requestTimes = requestTimes;
+        }
 
-		public void setSuccess(Object success) {
-			this.success = success;
-		}
+        public Object getSuccess() {
+            return success;
+        }
 
-		public Object getFail() {
-			return fail;
-		}
+        public void setSuccess(Object success) {
+            this.success = success;
+        }
 
-		public void setFail(Object fail) {
-			this.fail = fail;
-		}
+        public Object getFail() {
+            return fail;
+        }
 
-		public ReturnMode getReturnMode() {
-			return returnMode;
-		}
+        public void setFail(Object fail) {
+            this.fail = fail;
+        }
 
-		public void setReturnMode(ReturnMode returnMode) {
-			this.returnMode = returnMode;
-		}
+        public ReturnMode getReturnMode() {
+            return returnMode;
+        }
 
-		public boolean isSecurity() {
-			return isSecurity;
-		}
+        public void setReturnMode(ReturnMode returnMode) {
+            this.returnMode = returnMode;
+        }
 
-		public void setSecurity(boolean isSecurity) {
-			this.isSecurity = isSecurity;
-		}
+        public boolean isSecurity() {
+            return isSecurity;
+        }
 
-	}
+        public void setSecurity(boolean isSecurity) {
+            this.isSecurity = isSecurity;
+        }
+
+    }
 }

@@ -5,6 +5,5 @@ public enum RandomEnum {
     NUMBER,
     STRING,
 
-    GROUP
-    ;
+    GROUP;
 }

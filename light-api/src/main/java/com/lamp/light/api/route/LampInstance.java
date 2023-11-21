@@ -15,6 +15,6 @@ import java.net.InetSocketAddress;
 
 public interface LampInstance {
 
-	
-	public InetSocketAddress getInetSocketAddress();
+
+    public InetSocketAddress getInetSocketAddress();
 }

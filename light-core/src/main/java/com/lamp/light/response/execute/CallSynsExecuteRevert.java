@@ -4,7 +4,7 @@ import com.lamp.light.handler.AsyncReturn;
 
 import io.netty.handler.codec.http.HttpResponse;
 
-public class CallSynsExecuteRevert extends AbstractExecuteRevert{
+public class CallSynsExecuteRevert extends AbstractExecuteRevert {
 
     @Override
     public <T> T execute(HttpResponse httpResponse, AsyncReturn asyncReturn) {
@@ -13,5 +13,4 @@ public class CallSynsExecuteRevert extends AbstractExecuteRevert{
     }
 
 
-    
 }

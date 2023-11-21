@@ -15,7 +15,7 @@ import io.netty.handler.codec.http.HttpResponse;
 
 public class Response<T> {
 
-    
+
     public Response(HttpResponse httpResponse) {
     }
 }

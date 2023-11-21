@@ -12,23 +12,23 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/requesMethon")
 public class RequesMethonController {
 
-	@GetMapping
-	public ReturnObject getMethon(ReturnObject returnObject) {
-		return returnObject;
-	}
+    @GetMapping
+    public ReturnObject getMethon(ReturnObject returnObject) {
+        return returnObject;
+    }
 
-	@PostMapping
-	public ReturnObject postMethon(@RequestBody ReturnObject returnObject) {
-		return returnObject;
-	}
-	
-	@PutMapping
-	public ReturnObject putMethon(@RequestBody ReturnObject returnObject) {
-		return returnObject;
-	}
-	
-	@DeleteMapping
-	public ReturnObject deleteMethon(ReturnObject returnObject) {
-		return returnObject;
-	}
+    @PostMapping
+    public ReturnObject postMethon(@RequestBody ReturnObject returnObject) {
+        return returnObject;
+    }
+
+    @PutMapping
+    public ReturnObject putMethon(@RequestBody ReturnObject returnObject) {
+        return returnObject;
+    }
+
+    @DeleteMapping
+    public ReturnObject deleteMethon(ReturnObject returnObject) {
+        return returnObject;
+    }
 }

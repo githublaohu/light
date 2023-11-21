@@ -6,6 +6,6 @@ import io.netty.handler.codec.http.HttpResponse;
 
 public interface ExecuteRevert {
 
-    
-    <T>T execute(HttpResponse httpResponse , AsyncReturn asyncReturn);
+
+    <T> T execute(HttpResponse httpResponse, AsyncReturn asyncReturn);
 }

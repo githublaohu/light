@@ -36,18 +36,18 @@ public class AsyncReturn {
 
     private HttpRequest fullHttpRequest;
 
-    private Integer requestTimes = 3*1000;
+    private Integer requestTimes = 3 * 1000;
 
     private HandleMethod handleMethod;
 
     private Call<Object> call;
 
     private ReturnMode returnMode;
-    
+
     private LightContext lightContext;
-    
+
     private ChannelWrapper channelWrapper;
-    
+
     private List<Interceptor> interceptorList;
 
     public AsyncReturn() {
@@ -124,34 +124,34 @@ public class AsyncReturn {
     }
 
     public synchronized Object getObject() throws InterruptedException {
-        this.wait(requestTimes*100 + 100);
-        if(object instanceof Throwable) {
-            throw new RuntimeException((Throwable)object);
+        this.wait(requestTimes * 100 + 100);
+        if (object instanceof Throwable) {
+            throw new RuntimeException((Throwable) object);
         }
         return object;
     }
-    
+
     public void lightContext(LightContext lightContext) {
-    	this.lightContext = lightContext;
+        this.lightContext = lightContext;
     }
-    
+
     public LightContext lightContext() {
-    	return this.lightContext;
+        return this.lightContext;
     }
 
-	public ChannelWrapper channelWrapper() {
-		return channelWrapper;
-	}
-
-	public void channelWrapper(ChannelWrapper channelWrapper) {
-		this.channelWrapper = channelWrapper;
-	}
-    
-    public void  interceptorList (List<Interceptor> interceptorList) {
-    	this.interceptorList = interceptorList;
+    public ChannelWrapper channelWrapper() {
+        return channelWrapper;
     }
-    
-    public List<Interceptor>  interceptorList () {
-    	return this.interceptorList;
+
+    public void channelWrapper(ChannelWrapper channelWrapper) {
+        this.channelWrapper = channelWrapper;
+    }
+
+    public void interceptorList(List<Interceptor> interceptorList) {
+        this.interceptorList = interceptorList;
+    }
+
+    public List<Interceptor> interceptorList() {
+        return this.interceptorList;
     }
 }

@@ -2,5 +2,5 @@ package com.lamp.light.context;
 
 public interface ContextData {
 
-	public String take(String key);
+    public String take(String key);
 }

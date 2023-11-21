@@ -16,6 +16,6 @@ import java.lang.reflect.Type;
 public interface Serialize {
 
     public byte[] serialize(Object object);
-    
+
     public <T> T deserialization(Type t, byte[] data);
 }

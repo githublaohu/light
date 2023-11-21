@@ -8,31 +8,31 @@ import org.junit.Test;
 
 public class FastJsonSerializeTest {
 
-    
+
     FastJsonSerialize fastJsonSerialize = new FastJsonSerialize();
-    
+
     @SuppressWarnings("unchecked")
-	@Test
+    @Test
     public void testCollection() throws NoSuchMethodException, SecurityException {
         Method method = this.getClass().getMethod("getTest");
         Class<?> clazz = method.getReturnType();
-        
-        Map<String , Testsss> map = new HashMap<>();
+
+        Map<String, Testsss> map = new HashMap<>();
         Testsss testsss = new Testsss();
         testsss.setStes("123123");
         map.put("123", testsss);
         byte[] data = fastJsonSerialize.serialize(map);
-        Map<String , Testsss> newMap = (Map<String , Testsss>)fastJsonSerialize.deserialization(clazz, data);
+        Map<String, Testsss> newMap = (Map<String, Testsss>) fastJsonSerialize.deserialization(clazz, data);
         newMap.toString();
     }
-    
-    
-    public Map<String ,Testsss> getTest(){
+
+
+    public Map<String, Testsss> getTest() {
         return null;
     }
-    
-    static class Testsss{
-        
+
+    static class Testsss {
+
         private String stes;
 
         public String getStes() {
@@ -42,7 +42,7 @@ public class FastJsonSerializeTest {
         public void setStes(String stes) {
             this.stes = stes;
         }
-        
-        
+
+
     }
 }

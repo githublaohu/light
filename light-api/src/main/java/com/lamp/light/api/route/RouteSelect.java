@@ -13,6 +13,6 @@ package com.lamp.light.api.route;
 
 
 public interface RouteSelect {
-	
-	public LampInstance select(Object[] args, Class<?> clazz);
+
+    public LampInstance select(Object[] args, Class<?> clazz);
 }

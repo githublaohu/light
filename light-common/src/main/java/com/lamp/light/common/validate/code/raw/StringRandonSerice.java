@@ -1,9 +1,11 @@
-package com.lamp.light.common.validate.code;
+package com.lamp.light.common.validate.code.raw;
 
 import com.lamp.light.api.validate.code.ValidateCode;
+import com.lamp.light.api.validate.code.VerifyResourceResult;
+
 import java.util.concurrent.ThreadLocalRandom;
 
-public class StringRandonSerice extends  AbstractRandomService{
+public class StringRandonSerice extends AbstractRandomService {
 
     private static final String CHARACTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -18,7 +20,12 @@ public class StringRandonSerice extends  AbstractRandomService{
     }
 
     @Override
-    public String createRandom(ValidateCode validateCode) {
-        return generateRandomString(this.validateCodeConfig.getLength());
+    public VerifyResourceResult createRandom(ValidateCode validateCode) {
+        return null;//generateRandomString(this.validateCodeConfig.getLength());
+    }
+
+    @Override
+    protected void doInit() {
+
     }
 }

@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/requesData")
 public class RequestDataController {
 
-	@GetMapping("pathData")
-	public ReturnObject pathData(ReturnObject returnObject, @RequestHeader("name") String name ) {
-		
-		return returnObject;
-	}
-	
+    @GetMapping("pathData")
+    public ReturnObject pathData(ReturnObject returnObject, @RequestHeader("name") String name) {
+
+        return returnObject;
+    }
+
 }

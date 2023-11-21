@@ -13,7 +13,7 @@ package com.lamp.light.api;
 
 public class LightConstant {
 
-	public static final String PROTOCOL_HTTP_10 = "http1.0";
-	
-	public static final String PROTOCOL_HTTP_11 = "http1.1";
+    public static final String PROTOCOL_HTTP_10 = "http1.0";
+
+    public static final String PROTOCOL_HTTP_11 = "http1.1";
 }
