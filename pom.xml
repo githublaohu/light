@@ -44,7 +44,7 @@
     </modules>
     <properties>
         <reversion>0.0.2</reversion>
-        <netty.version>4.1.86.Final</netty.version>
+        <netty.version>4.1.108.Final</netty.version>
         <fastjson.version>1.2.83</fastjson.version>
     </properties>
     <dependencyManagement>
