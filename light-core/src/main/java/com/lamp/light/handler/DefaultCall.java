@@ -13,8 +13,8 @@ package com.lamp.light.handler;
 
 import java.net.InetSocketAddress;
 
-import com.lamp.light.api.call.Call;
-import com.lamp.light.api.call.Callback;
+import com.lamp.light.api.http.call.Call;
+import com.lamp.light.api.http.call.Callback;
 import com.lamp.light.api.response.Response;
 import com.lamp.light.api.response.ReturnMode;
 import com.lamp.light.netty.NettyClient;

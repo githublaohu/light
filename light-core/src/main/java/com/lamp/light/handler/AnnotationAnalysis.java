@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.lamp.light.api.call.Call;
+import com.lamp.light.api.http.call.Call;
 import com.lamp.light.api.http.annotation.method.DELETE;
 import com.lamp.light.api.http.annotation.method.GET;
 import com.lamp.light.api.http.annotation.method.HEAD;

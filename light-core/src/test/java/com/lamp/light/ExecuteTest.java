@@ -21,8 +21,8 @@ import org.junit.Test;
 
 import com.alibaba.fastjson.JSON;
 import com.lamp.light.Light.Builder;
-import com.lamp.light.api.call.Call;
-import com.lamp.light.api.call.Callback;
+import com.lamp.light.api.http.call.Call;
+import com.lamp.light.api.http.call.Callback;
 import com.lamp.light.api.http.annotation.method.POST;
 import com.lamp.light.api.http.annotation.parameter.Body;
 import com.sun.net.httpserver.HttpExchange;

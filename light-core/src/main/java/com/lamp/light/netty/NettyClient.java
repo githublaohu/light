@@ -23,7 +23,7 @@ import javax.net.ssl.SSLException;
 
 import com.lamp.light.LightContext;
 import com.lamp.light.api.LightConstant;
-import com.lamp.light.api.call.Callback;
+import com.lamp.light.api.http.call.Callback;
 import com.lamp.light.api.interceptor.Interceptor;
 import com.lamp.light.api.response.Response;
 import com.lamp.light.api.response.ReturnMode;

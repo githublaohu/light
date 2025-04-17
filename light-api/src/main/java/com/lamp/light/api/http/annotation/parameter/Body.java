@@ -17,7 +17,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.lamp.light.api.serialize.Serialize;
+import com.lamp.light.api.http.serialize.Serialize;
 
 @Documented
 @Target({ElementType.METHOD, ElementType.TYPE})

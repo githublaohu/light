@@ -14,7 +14,7 @@ package com.lamp.light.handler;
 import java.util.List;
 
 import com.lamp.light.LightContext;
-import com.lamp.light.api.call.Call;
+import com.lamp.light.api.http.call.Call;
 import com.lamp.light.api.interceptor.Interceptor;
 import com.lamp.light.api.response.ReturnMode;
 import com.lamp.light.api.serialize.Serialize;
